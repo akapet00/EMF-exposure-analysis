@@ -14,7 +14,7 @@ def fig_config(latex=False, nrows=1, ncols=1, scaler=1.0):
         number of figures column-wise
     scaler : float, optional
         scaler for each figure
-    
+
     Returns
     -------
     None
@@ -40,7 +40,7 @@ def fig_config_reset():
     Parameters
     ----------
     None
-    
+
     Returns
     -------
     None

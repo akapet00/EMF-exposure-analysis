@@ -45,7 +45,7 @@ def initT_depth_analytic(x, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c, T_f, Q_m)
     Returns
     -------
     numpy.ndarray
-        initial temperature distribution befor mW energy radiation
+        initial temperature distribution prior to radiation
     """
     pen_depth = np.max(x)
     w_b = m_b * rho_b * C_b
