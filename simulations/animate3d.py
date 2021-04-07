@@ -1,13 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 
 
 # data
-filename = 'deltaT_Nx31Ny31Nz31_t860_a4'
+filename = 'deltaT_Nx31Ny31Nz31_t860_a4_dipole'
 sim_time = 860
-t = np.linspace(0, sim_time, 50)
+t = np.linspace(0, sim_time, 11)
 N = [31] * 3
 area = (0.02, 0.02)
 x = np.linspace(-area[0]/2, area[0]/2, N[0])
@@ -31,13 +30,19 @@ ax.w_xaxis.set_pane_color((0, 0, 0))
 ax.w_yaxis.set_pane_color((0, 0, 0))
 ax.w_zaxis.set_pane_color((0, 0, 0))
 
-# animate
+
 def init():
-    ax.plot_surface(xmesh, ymesh, T[0, :, :, 0], cmap='RdYlBu_r', antialiased=True)
+    ax.plot_surface(xmesh, ymesh, T[0, :, :, 0], cmap='RdYlBu_r',
+                    antialiased=True)
+
 
 def animate(frame):
-    ax.plot_surface(xmesh, ymesh, T[frame, :, :, 0], cmap='RdYlBu_r', antialiased=True)
-    ax.set_title(f'$t$ = {int(t[frame])} s; $\\Delta T_{{max}}^{{surf}}$ = {T[frame, :, :, 0].max():.3f} °C')
+    ax.plot_surface(xmesh, ymesh, T[frame, :, :, 0], cmap='RdYlBu_r',
+                    antialiased=True)
+    ax.set_title(f'$t$ = {int(t[frame])} s; '
+                 f'$\\Delta T_{{max}}$ = {T[frame, :, :, 0].max():.3f} °C')
 
-anim = FuncAnimation(fig, animate, init_func=init, frames=np.arange(1, t.size), interval=1)
-anim.save(f'{filename}.gif', writer='imagemagick', fps=20)
+
+anim = FuncAnimation(fig, animate, init_func=init,
+                     frames=np.arange(1, t.size), interval=1)
+anim.save(f'{filename}.gif', fps=20)
