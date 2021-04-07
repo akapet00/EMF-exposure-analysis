@@ -1,5 +1,5 @@
-import jax.numpy as np
-import numpy as onp
+import jax.numpy as jnp
+import numpy as np
 from scipy.interpolate import interp1d
 
 
@@ -27,7 +27,7 @@ def quad(func, a, b, args=(), n_points=3):
     """
     if not callable(func):
         raise ValueError('`func` must be callable')
-    psi, w = onp.polynomial.legendre.leggauss(n_points)
+    psi, w = np.polynomial.legendre.leggauss(n_points)
     x = ((b - a) / 2) * psi + (a + b) / 2
     return np.sum((b - a) / 2 * w * func(x, *args))
 
@@ -50,14 +50,14 @@ def elementwise_quad(y, x, n_points=3):
     float
         approximate of the integral of a given function
     """
-    if not isinstance(y, (np.ndarray)):
+    if not isinstance(y, (np.ndarray, jnp.ndarray)):
         raise Exception('`y` must be numpy.ndarray.')
     try:
         a = x[0]
         b = x[-1]
     except TypeError:
         print('`x` must be numpy.ndarray')
-    psi, w = onp.polynomial.legendre.leggauss(n_points)
+    psi, w = np.polynomial.legendre.leggauss(n_points)
     y_interp = interp1d(x, y, kind='cubic')
     x_interp = ((b - a) / 2) * psi + (a + b) / 2
     return np.sum((b - a) / 2 * w * y_interp(x_interp))

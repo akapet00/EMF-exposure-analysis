@@ -40,7 +40,7 @@ def green(xt, yt, zt, xs, ys, zs, frequency):
 
 green_grad = jit(vmap(
         grad(green, argnums=(0, 1, 2), holomorphic=True),
-        in_axes=(None, None, None, 0, None, None, None)))
+        in_axes=(None, None, None, 0, 0, 0, None)))
 
 
 def efield(xt, yt, zt, xs, ys, zs, Is, frequency):
