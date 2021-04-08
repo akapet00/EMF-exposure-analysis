@@ -86,9 +86,47 @@ def efield(xt, yt, zt, xs, ys, zs, Is, frequency):
     return (Ex, Ey, Ez)
 
 
-def incident_power_density(efield):
-    r"""Return the incident power density free space approximation
-    based on absolute vaues of electric field.
+def hfield(xt, yt, zt, xs, ys, zs, Is, frequency):
+    r"""Return the magnetic field approximation value in a single point
+    in free space.
+
+    Parameters
+    ----------
+    xt : float or numpy.ndarray
+        x coordinate of the observed point(s) in free space
+    yt : float or numpy.ndarray
+        y coordinate of the observed point(s) in free space
+    zt : float or numpy.ndarray
+        z coordinate of the observed point(s) in free space
+    xs : float or numpy.ndarray
+        x coordinate of the source
+    xs : float or numpy.ndarray
+        y coordinate of the source
+    xs : float or numpy.ndarray
+        z coordinate of the source
+    Is : numpy.ndarray
+        coomplex current distribution over the antenna
+    frequency : float
+        frequency in GHz
+
+    Returns
+    -------
+    float or numpy.ndarray
+        magnetic field values for the observed point
+    """
+    prefix = 1 / (4 * pi)
+    g_x, g_y, g_z = green_grad(xt + 0j, yt + 0j, zt + 0j, xs, ys, zs,
+                               frequency)
+    Hy = prefix * elementwise_quad(Is * g_z, xs, 3)
+    Hz = - prefix * elementwise_quad(Is * g_y, xs, 3)
+    Hx = np.zeros_like(Hz)
+    return (Hx, Hy, Hz)
+
+
+def incident_power_density_ff(efield):
+    r"""Return the incident power density for the case of the far-field
+    or transverse electromagnetic plane wave based on absolute values
+    of electric field.
 
     Parameters
     ----------
@@ -99,7 +137,7 @@ def incident_power_density(efield):
     -------
     numpy.ndarray
         incidnet power density free space approximation of shape (N, )
-        where N is the shape of `E_fs`
+        where N is the shape of `efield`
     """
     Z_0 = mu_0 * c
     if isinstance(efield, (float, jnp.ndarray, np.ndarray)):
