@@ -196,8 +196,6 @@ def deltaT_3d_pstd(t, N, area, pen_depth, k, rho, C, m_b, SAR_sur):
     dx = X / Nx
     dy = Y / Ny
     dz = Z / Nz
-    x = np.linspace(-X/2, X/2, Nx)
-    y = np.linspace(-Y/2, Y/2, Ny)
     z = np.linspace(0, Z, Nz)
 
     SAR = np.empty(shape=(Nx, Ny, Nz))
@@ -205,25 +203,32 @@ def deltaT_3d_pstd(t, N, area, pen_depth, k, rho, C, m_b, SAR_sur):
         _SAR = SAR_sur * np.exp(-z[idx] / pen_depth)
         SAR[:, :, idx] = _SAR
 
-    kappax = 2 * pi * np.fft.fftfreq(Nx, d=dx)
-    kappay = 2 * pi * np.fft.fftfreq(Ny, d=dy)
-    kappaz = 2 * pi * np.fft.fftfreq(Nz, d=dz)
-
     T0 = np.zeros_like(SAR)
     T0 = T0.ravel()
 
-    def rhs(T, t, kappa, k, rho, C, m_b, SAR):
+    kx = 2 * pi * np.fft.fftfreq(Nx, d=dx)
+    ky = 2 * pi * np.fft.fftfreq(Ny, d=dy)
+    kz = 2 * pi * np.fft.fftfreq(Nz, d=dz)
+    KX, KY, KZ = np.meshgrid(kx, ky, kz)
+    lap = KX ** 2 + KY ** 2 + KZ ** 2
+    lapinv = np.zeros_like(lap)
+    lapinv[lap != 0] = 1. / lap[lap != 0]
+    DX = 1j * KX * lapinv
+    DY = 1j * KY * lapinv
+    DZ = 1j * KZ * lapinv
+
+    def rhs(T, t):
         T = T.reshape(Nx, Ny, Nz)
         T_fft = np.fft.fft(T)
-        dd_T_fft = - np.power(kappa, 2) * T_fft
-        dd_T = np.fft.ifft(dd_T_fft)
+        lapT_fft = - (DX + DY + DZ) * T_fft
+        lapT = np.fft.ifft(lapT_fft)
 
-        dT_dt = (
-            k * dd_T / (rho * C)
+        dTdt = (
+            k * lapT / (rho * C)
             - rho * m_b * T
             + SAR / C
             )
-        return dT_dt.real.ravel()
+        return dTdt.real.ravel()
 
-    T = odeint(rhs, T0, t, args=(kappax, k, rho, C, m_b, SAR))
+    T = odeint(rhs, T0, t)
     return T.reshape(-1, Nx, Ny, Nz)
