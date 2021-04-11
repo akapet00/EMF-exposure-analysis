@@ -4,22 +4,23 @@ from matplotlib.animation import FuncAnimation
 
 
 # data
-filename = 'deltaT_Nx31Ny31Nz31_t860_a4_dipole'
+filename = 'deltaT_source-HWdipole_grid-51x51x21_surface-4cm_timegrid-51_simtime-860s'
 sim_time = 860
-t = np.linspace(0, sim_time, 11)
-N = [31] * 3
+tg = 51
+t = np.linspace(0, sim_time, tg)
+N = [51, 51, 21]
 area = (0.02, 0.02)
 x = np.linspace(-area[0]/2, area[0]/2, N[0])
 y = np.linspace(-area[0]/2, area[1]/2, N[1])
 xmesh, ymesh = np.meshgrid(x, y)
-T = np.load(f'{filename}.npy', allow_pickle=True, fix_imports=True)
+deltaT = np.load(f'{filename}.npy', allow_pickle=True, fix_imports=True)
 
 # init and config fig
 fig = plt.figure()
 ax = fig.add_subplot(1, 1, 1, projection='3d')
-ax.set_xlim3d(x.min()*1.05, x.max()*1.05)
-ax.set_ylim3d(y.min()*1.05, y.max()*1.05)
-ax.set_zlim3d(T[-1, :, :, 0].min(), T[-1, :, :, 0].max())
+ax.set_xlim3d(x.min() * 1.05, x.max() * 1.05)
+ax.set_ylim3d(y.min() * 1.05, y.max() * 1.05)
+ax.set_zlim3d(deltaT[-1, :, :, 0].min(), deltaT[-1, :, :, 0].max())
 ax.xaxis.labelpad = 10
 ax.yaxis.labelpad = 10
 ax.zaxis.labelpad = 10
@@ -32,15 +33,16 @@ ax.w_zaxis.set_pane_color((0, 0, 0))
 
 
 def init():
-    ax.plot_surface(xmesh, ymesh, T[0, :, :, 0], cmap='RdYlBu_r',
+    ax.plot_surface(xmesh, ymesh, deltaT[0, :, :, 0], cmap='viridis',
                     antialiased=True)
 
 
 def animate(frame):
-    ax.plot_surface(xmesh, ymesh, T[frame, :, :, 0], cmap='RdYlBu_r',
-                    antialiased=True)
-    ax.set_title(f'$t$ = {int(t[frame])} s; '
-                 f'$\\Delta T_{{max}}$ = {T[frame, :, :, 0].max():.3f} °C')
+    ax.plot_trisurf(xmesh.ravel(), ymesh.ravel(),
+                    deltaT[frame, :, :, 0].ravel(), cmap='viridis',
+                    antialiased=False)
+    ax.set_title(f'$t = {int(t[frame])}$ s; '
+                 f'$\\Delta T_{{max}} = {deltaT[frame, :, :, 0].max():.3f}$ °C')
 
 
 anim = FuncAnimation(fig, animate, init_func=init,
