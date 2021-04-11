@@ -24,13 +24,17 @@ def fig_config(latex=False, nrows=1, ncols=1, scaler=1.0):
         'text.usetex': latex,
         'font.family': 'serif',
         'font.size': 12,
+        'figure.figsize': [4.774 * scaler * ncols, 2.950 * scaler * nrows],
         'axes.labelsize': 16,
         'axes.titlesize': 16,
         'grid.linewidth': 0.7,
         'legend.fontsize': 12,
         'xtick.labelsize': 12,
         'ytick.labelsize': 12,
-        'figure.figsize': [4.774 * scaler * ncols, 2.950 * scaler * nrows],
+        'lines.linewidth': 2.5,
+        'lines.markersize': 8,
+        'lines.markeredgecolor': 'k',
+        'lines.markeredgewidth': 1.0,
     })
 
 
