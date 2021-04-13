@@ -4,11 +4,11 @@ from matplotlib.animation import FuncAnimation
 
 
 # data
-filename = 'deltaT_source-HWdipole_grid-51x51x21_surface-4cm_timegrid-51_simtime-860s'
-sim_time = 860
+filename = 'deltaT_source-HWdipole_grid-101x101x21_surface-4cm_timegrid-51_simtime-360s'
+sim_time = 360
 tg = 51
 t = np.linspace(0, sim_time, tg)
-N = [51, 51, 21]
+N = [101, 101, 21]
 area = (0.02, 0.02)
 x = np.linspace(-area[0]/2, area[0]/2, N[0])
 y = np.linspace(-area[0]/2, area[1]/2, N[1])
