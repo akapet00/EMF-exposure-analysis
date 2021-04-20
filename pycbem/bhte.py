@@ -211,17 +211,18 @@ def deltaT_3d_pstd(t, N, area, pen_depth, k, rho, C, m_b, SAR_sur):
     kz = 2 * pi * np.fft.fftfreq(Nz, d=dz)
     KX, KY, KZ = np.meshgrid(kx, ky, kz)
     lap = KX ** 2 + KY ** 2 + KZ ** 2
-    lapinv = np.zeros_like(lap)
-    lapinv[lap != 0] = 1. / lap[lap != 0]
-    DX = 1j * KX * lapinv
-    DY = 1j * KY * lapinv
-    DZ = 1j * KZ * lapinv
+    #lapinv = np.zeros_like(lap)
+    #lapinv[lap != 0] = 1. / lap[lap != 0]
+    #DX = 1j * KX * lapinv
+    #DY = 1j * KY * lapinv
+    #DZ = 1j * KZ * lapinv
 
     def rhs(T, t):
         T = T.reshape(Nx, Ny, Nz)
-        T_fft = np.fft.fft(T)
-        lapT_fft = - (DX + DY + DZ) * T_fft
-        lapT = np.fft.ifft(lapT_fft)
+        T_fft = np.fft.fftn(T)
+        #lapT_fft = - (DX ** 2 + DY ** 2 + DZ ** 2) * T_fft
+        lapT_fft = - lap * T_fft
+        lapT = np.fft.ifftn(lapT_fft)
 
         dTdt = (
             k * lapT / (rho * C)
