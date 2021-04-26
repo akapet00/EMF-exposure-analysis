@@ -1,12 +1,12 @@
 import numpy as np
+import pyfftw
 from scipy.integrate import odeint
 from scipy.special import erfc
 
 from .constants import pi
 
 
-def initT_depth_analytic(x, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c, T_f,
-                         Q_m):
+def init_temp(z, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c, T_f, Q_m):
     r"""Return the temperature distribution by solving 1-D bioheat
     equation analytically over tissue depth. This can serve as the
     initial temperature distribution before solving bioheat equation
@@ -19,7 +19,7 @@ def initT_depth_analytic(x, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c, T_f,
 
     Parameters
     ----------
-    x : numpy.ndarray
+    z : numpy.ndarray
         one dimensional solution domain
     k : float
         thermal conductivity of the tissue
@@ -49,19 +49,19 @@ def initT_depth_analytic(x, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c, T_f,
     numpy.ndarray
         initial temperature distribution prior to radiation
     """
-    pen_depth = np.max(x)
+    pen_depth = np.max(z)
     w_b = m_b * rho_b * C_b
     A = w_b / k
     denom = (np.sqrt(A) * np.cosh(np.sqrt(A) * pen_depth)
              + (h_0 / k) * np.sinh(np.sqrt(A) * pen_depth))
-    numer = ((T_c - T_a - Q_m / w_b) * (np.sqrt(A) * np.cosh(np.sqrt(A) * x)
-             + (h_0 / k) * np.sinh(np.sqrt(A) * x))
+    numer = ((T_c - T_a - Q_m / w_b) * (np.sqrt(A) * np.cosh(np.sqrt(A) * z)
+             + (h_0 / k) * np.sinh(np.sqrt(A) * z))
              + h_0 / k * (T_f - T_a - Q_m / w_b) * np.sinh(np.sqrt(A)
-             * (pen_depth - x)))
+             * (pen_depth - z)))
     return T_a + Q_m / w_b + numer / denom
 
 
-def deltaT_depth_analytic(t, pen_depth, k, rho, C, I0, T_tr):
+def delta_temp_analytic(t, pen_depth, k, rho, C, I0, T_tr):
     r"""Return the closed-form solution of the 1-D BHTE with no blood
     perfusion considered over given simulation period, `t`.
 
@@ -98,7 +98,7 @@ def deltaT_depth_analytic(t, pen_depth, k, rho, C, I0, T_tr):
             - C_2 * (1 - np.exp(t / tau) * erfc(np.sqrt(t / tau))))
 
 
-def deltaT_depth_pstd(t, N, pen_depth, k, rho, C, m_b, I0, T_tr):
+def delta_temp(t, N, pen_depth, k, rho, C, m_b, I0, T_tr):
     r"""Numerical solution to 1-D Pennes' bioheat transfer equation by
     using Fast Fourier Transform on spatial coordinate.
 
@@ -159,7 +159,7 @@ def deltaT_depth_pstd(t, N, pen_depth, k, rho, C, m_b, I0, T_tr):
     return deltaT.real
 
 
-def deltaT_3d_pstd(t, N, area, pen_depth, k, rho, C, m_b, SAR_sur):
+def delta_temp3(t, N, area, pen_depth, k, rho, C, m_b, SAR_sur):
     r"""Numerical solution to 1-D Pennes' bioheat transfer equation by
     using Fast Fourier Transform on spatial coordinate.
 
@@ -216,13 +216,13 @@ def deltaT_3d_pstd(t, N, area, pen_depth, k, rho, C, m_b, SAR_sur):
     #DX = 1j * KX * lapinv
     #DY = 1j * KY * lapinv
     #DZ = 1j * KZ * lapinv
+    #lap = DX + DY + DZ
 
     def rhs(T, t):
         T = T.reshape(Nx, Ny, Nz)
-        T_fft = np.fft.fftn(T)
-        #lapT_fft = - (DX ** 2 + DY ** 2 + DZ ** 2) * T_fft
+        T_fft = np.fft.fftn(T, axes=(0, 1, 2))
         lapT_fft = - lap * T_fft
-        lapT = np.fft.ifftn(lapT_fft)
+        lapT = np.fft.ifftn(lapT_fft, axes=(0, 1, 2))
 
         dTdt = (
             k * lapT / (rho * C)
