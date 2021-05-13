@@ -7,7 +7,7 @@ from .constants import pi
 
 
 def init_temp(z, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c, T_f, Q_m):
-    r"""Return the temperature distribution by solving 1-D bioheat
+    """Return the temperature distribution by solving 1-D bioheat
     equation analytically over tissue depth. This can serve as the
     initial temperature distribution before solving bioheat equation
     numerically via the pseudo-spectral method.
@@ -62,7 +62,7 @@ def init_temp(z, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c, T_f, Q_m):
 
 
 def delta_temp_analytic(t, pen_depth, k, rho, C, I0, T_tr):
-    r"""Return the closed-form solution of the 1-D BHTE with no blood
+    """Return the closed-form solution of the 1-D BHTE with no blood
     perfusion considered over given simulation period, `t`.
 
     Ref: Foster, KR; Ziskin, MC; Balzano, Q. Thermal response of human
@@ -99,7 +99,7 @@ def delta_temp_analytic(t, pen_depth, k, rho, C, I0, T_tr):
 
 
 def delta_temp(t, N, pen_depth, k, rho, C, m_b, I0, T_tr):
-    r"""Numerical solution to 1-D Pennes' bioheat transfer equation by
+    """Numerical solution to 1-D Pennes' bioheat transfer equation by
     using Fast Fourier Transform on spatial coordinate.
 
     Parameters
@@ -159,9 +159,10 @@ def delta_temp(t, N, pen_depth, k, rho, C, m_b, I0, T_tr):
     return deltaT.real
 
 
-def delta_temp3(t, N, area, pen_depth, k, rho, C, m_b, SAR_sur):
-    r"""Numerical solution to 1-D Pennes' bioheat transfer equation by
-    using Fast Fourier Transform on spatial coordinate.
+def temp3(t, N, area, pen_depth, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c,
+          T_f, Q_m, SAR):
+    """Numerical solution to 1-D Pennes' bioheat transfer equation by
+    using Fast Fourier Transform on spatial coordinates.
 
     Parameters
     ----------
@@ -179,11 +180,25 @@ def delta_temp3(t, N, area, pen_depth, k, rho, C, m_b, SAR_sur):
         tissue density
     C : float
         heat capacity of the tissue
+    rho_b : float
+        blood density
+    C_b : float
+        blood heat capacity
     m_b : float
         blood perfusion
-    SAR_sur : numpy.ndarray
-        2-D array of shape (`N[0]`, `N[1]`), each value corresponds to
-        (x, y) surface SAR value
+    h_0 : float
+        heat convection coefficient between the skin surface and air
+    T_a : float
+        arterial temperature
+    T_c : float
+        body core temperature
+    T_f : float
+        surrounding air temperature
+    Q_m : float
+        metabolic heat generation
+    SAR : numpy.ndarray
+        3-D array of shape (`N[0]`, `N[1]`, `N[2]`), each value
+        corresponds to (x, y, z) SAR value
 
     Returns
     -------
@@ -197,39 +212,36 @@ def delta_temp3(t, N, area, pen_depth, k, rho, C, m_b, SAR_sur):
     dy = Y / Ny
     dz = Z / Nz
     z = np.linspace(0, Z, Nz)
-
-    SAR = np.empty(shape=(Nx, Ny, Nz))
-    for idx in range(Nz):
-        _SAR = SAR_sur * np.exp(-z[idx] / pen_depth)
-        SAR[:, :, idx] = _SAR
-
-    T0 = np.zeros_like(SAR)
-    T0 = T0.ravel()
-
+    
     kx = 2 * pi * np.fft.fftfreq(Nx, d=dx)
     ky = 2 * pi * np.fft.fftfreq(Ny, d=dy)
     kz = 2 * pi * np.fft.fftfreq(Nz, d=dz)
     KX, KY, KZ = np.meshgrid(kx, ky, kz)
     lap = KX ** 2 + KY ** 2 + KZ ** 2
-    #lapinv = np.zeros_like(lap)
-    #lapinv[lap != 0] = 1. / lap[lap != 0]
-    #DX = 1j * KX * lapinv
-    #DY = 1j * KY * lapinv
-    #DZ = 1j * KZ * lapinv
-    #lap = DX + DY + DZ
-
+    # lapinv = np.zeros_like(lap)
+    # lapinv[lap != 0] = 1. / lap[lap != 0]
+    # DX = 1j * KX * lapinv
+    # DY = 1j * KY * lapinv
+    # DZ = 1j * KZ * lapinv
+    # lap = DX + DY + DZ
+    
+    T0 = np.ones(N) * init_temp(z, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c,
+                                T_f, Q_m)
+    T0 = T0.ravel()
+    
+    
     def rhs(T, t):
         T = T.reshape(Nx, Ny, Nz)
         T_fft = np.fft.fftn(T, axes=(0, 1, 2))
         lapT_fft = - lap * T_fft
         lapT = np.fft.ifftn(lapT_fft, axes=(0, 1, 2))
 
-        dTdt = (
-            k * lapT / (rho * C)
-            - rho * m_b * T
-            + SAR / C
-            )
+        dTdt = (k * lapT
+                + rho_b ** 2 * m_b * C_b * (T_a - T) 
+                + Q_m
+                + SAR * rho) / (rho * C)
         return dTdt.real.ravel()
 
+    
     T = odeint(rhs, T0, t)
     return T.reshape(-1, Nx, Ny, Nz)
