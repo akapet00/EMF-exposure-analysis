@@ -1,4 +1,3 @@
-import csv
 import os
 
 import pandas as pd
@@ -10,11 +9,11 @@ SUPPORTED_TISSUES = ['air', 'blood', 'blood_vessel', 'body_fluid',
                      'brain_grey_matter', 'brain_white_matter', 'cerebellum',
                      'cerebro_spinal_fluid', 'dura', 'fat', 'muscle',
                      'skin_dry', 'skin_wet']
-SUPPORTED_FREQS = [3., 6., 10., 15., 20., 30., 40., 60., 80., 100.]
+SUPPORTED_FREQS = [3., 3.5, 6., 10., 15., 20., 30., 40., 60., 80., 100.]
 
 
-def load_tissue_diel_properties(tissue, frequency):
-    r"""Return conductivity, relative permitivity, loss tangent and
+def load_tissue_diel_properties(tissue, f):
+    """Return conductivity, relative permitivity, loss tangent and
     penetration depth of a given tissue based on a given frequency.
 
     Ref: Hasgall, PA; Di Gennaro, F; Baumgartner, C; Neufeld, E; Lloyd,
@@ -26,7 +25,7 @@ def load_tissue_diel_properties(tissue, frequency):
     ----------
     tissue : str
         type of human tissue
-    frequency : float
+    f : float
         radiation frequency
 
     Returns
@@ -37,24 +36,18 @@ def load_tissue_diel_properties(tissue, frequency):
     """
     if tissue not in SUPPORTED_TISSUES:
         raise ValueError(f'Unsupported tissue. Choose {SUPPORTED_TISSUES}.')
-    if 1e9 > frequency > 100e9:
+    if 1e9 > f > 100e9:
         raise ValueError('Invalid frequency. Choose in range [1, 100] GHz')
-    tissue_diel_properties_path = os.path.join('data',
+    tissue_diel_properties_path = os.path.join('data', 'tissue_properties',
                                                'tissue_diel_properties.csv')
-    with open(tissue_diel_properties_path) as f:
-        reader = csv.reader(f)
-        for row in reader:
-            if str(row[0]) == tissue and float(row[1]) == frequency:
-                conductivity = float(row[2])
-                relative_permitivity = float(row[3])
-                loss_tangent = float(row[4])
-                penetration_depth = float(row[5])
-        return (conductivity, relative_permitivity, loss_tangent,
-                penetration_depth)
+    df = pd.read_csv(tissue_diel_properties_path)
+    df = df[(df.frequency == f) & (df.tissue == tissue)]
+    _, _, sigma, eps_r, tan_loss, pen_depth = df.to_numpy()[0]
+    return (sigma, eps_r, tan_loss, pen_depth)
 
 
-def load_antenna_el_properties(frequency):
-    r"""Return the current distribution over the thin wire half-dipole
+def load_antenna_el_properties(f):
+    """Return the current distribution over the thin wire half-dipole
     antenna. The data are obtained by solving the Pocklington integro-
     differential equation by using the indirect-boundary element
     method.
@@ -64,20 +57,21 @@ def load_antenna_el_properties(frequency):
 
     Parameters
     ----------
-    frequency : float
+    f : float
         operating frequency in GHz
 
     Returns
     -------
-    numpy.ndarray
-        current distribution over the wire
+    pandas.DataFrame
+        current distribution over the wire alongside additional
+        configuration details
     """
-    assert frequency / 1e9 in SUPPORTED_FREQS, \
-        (f'{frequency / 1e9} is not in supported. '
+    assert f / 1e9 in SUPPORTED_FREQS, \
+        (f'{f / 1e9} is not in supported. '
          f'Supported frequency values: {SUPPORTED_FREQS}.')
-    data = loadmat(os.path.join('data', 'current.mat'))['output']
+    data = loadmat(os.path.join('data', 'dipole', 'fs_current.mat'))['output']
     df = pd.DataFrame(data,
-                      columns=['L', 'N', 'r', 'f', 'x', 'ireal', 'iimag'])
-    df_f = df[df.f == frequency]
+                      columns=['N', 'f', 'L', 'v', 'x', 'ireal', 'iimag'])
+    df_f = df[df.f == f]
     df_f.reset_index(drop=True, inplace=True)
     return df_f
