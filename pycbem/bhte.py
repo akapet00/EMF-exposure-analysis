@@ -1,5 +1,6 @@
+"""Bioheat transfer equation solvers."""
+
 import numpy as np
-import pyfftw
 from scipy.integrate import odeint
 from scipy.special import erfc
 
@@ -134,13 +135,6 @@ def delta_temp(t, N, pen_depth, k, rho, C, m_b, I0, T_tr):
     SAR = I0 * T_tr / (rho * pen_depth) * np.exp(-x / pen_depth)
     SAR_fft = np.fft.fft(SAR)
 
-    # initial conditions -- prior to radiofrequency exposure
-    T0 = np.zeros_like(x)
-    T0_fft = np.fft.fft(T0)
-
-    # recasting complex numbers to an array for easier handling in SciPy
-    T0_fft_ri = np.concatenate((T0_fft.real, T0_fft.imag))
-
     def rhs(T_fft_ri, t, kappa, k, rho, C, m_b, SAR_fft):
         T_fft = T_fft_ri[:N] + (1j) * T_fft_ri[N:]
         d_T_fft = (
@@ -150,9 +144,13 @@ def delta_temp(t, N, pen_depth, k, rho, C, m_b, I0, T_tr):
             )
         return np.concatenate((d_T_fft.real, d_T_fft.imag)).astype(np.float64)
 
+    # initial conditions -- prior to radiofrequency exposure
+    T0 = np.zeros_like(x)
+    T0_fft = np.fft.fft(T0)
+    # recasting complex numbers to an array for easier handling in SciPy
+    T0_fft_ri = np.concatenate((T0_fft.real, T0_fft.imag))
     T_fft_ri = odeint(rhs, T0_fft_ri, t, args=(kappa, k, rho, C, m_b, SAR_fft))
     T_fft = T_fft_ri[:, :N] + (1j) * T_fft_ri[:, N:]
-
     deltaT = np.empty_like(T_fft)
     for i in range(t.size):
         deltaT[i, :] = np.fft.ifft(T_fft[i, :])
@@ -212,24 +210,18 @@ def temp3(t, N, area, pen_depth, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c,
     dy = Y / Ny
     dz = Z / Nz
     z = np.linspace(0, Z, Nz)
-    
     kx = 2 * pi * np.fft.fftfreq(Nx, d=dx)
     ky = 2 * pi * np.fft.fftfreq(Ny, d=dy)
     kz = 2 * pi * np.fft.fftfreq(Nz, d=dz)
     KX, KY, KZ = np.meshgrid(kx, ky, kz)
     lap = KX ** 2 + KY ** 2 + KZ ** 2
-    # lapinv = np.zeros_like(lap)
-    # lapinv[lap != 0] = 1. / lap[lap != 0]
-    # DX = 1j * KX * lapinv
-    # DY = 1j * KY * lapinv
-    # DZ = 1j * KZ * lapinv
-    # lap = DX + DY + DZ
-    
-    T0 = np.ones(N) * init_temp(z, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c,
-                                T_f, Q_m)
-    T0 = T0.ravel()
-    
-    
+    lapinv = np.zeros_like(lap)
+    lapinv[lap != 0] = 1. / lap[lap != 0]
+    DX = 1j * KX * lapinv
+    DY = 1j * KY * lapinv
+    DZ = 1j * KZ * lapinv
+    lap = DX + DY + DZ
+
     def rhs(T, t):
         T = T.reshape(Nx, Ny, Nz)
         T_fft = np.fft.fftn(T, axes=(0, 1, 2))
@@ -237,11 +229,13 @@ def temp3(t, N, area, pen_depth, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c,
         lapT = np.fft.ifftn(lapT_fft, axes=(0, 1, 2))
 
         dTdt = (k * lapT
-                + rho_b ** 2 * m_b * C_b * (T_a - T) 
+                + rho_b ** 2 * m_b * C_b * (T_a - T)
                 + Q_m
                 + SAR * rho) / (rho * C)
         return dTdt.real.ravel()
 
-    
+    _T0 = init_temp(z, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c, T_f, Q_m)
+    T0 = np.ones((Nx, Ny, Nz)) * _T0
+    T0 = T0.ravel()
     T = odeint(rhs, T0, t)
     return T.reshape(-1, Nx, Ny, Nz)
