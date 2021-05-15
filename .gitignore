@@ -130,3 +130,7 @@ dmypy.json
 
 # Code configs
 .vscode/
+
+# simulation files
+simulations/*.h5
+simulations/*.mat
