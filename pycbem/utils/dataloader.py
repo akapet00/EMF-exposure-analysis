@@ -75,3 +75,54 @@ def load_antenna_el_properties(f):
     df_f = df[df.f == f]
     df_f.reset_index(drop=True, inplace=True)
     return df_f
+
+
+def load_sphere_coords(N):
+    """Return the coordinates of a sphere representing a homogenous
+    head model with diameter of 0.09 m.
+
+    Parameters
+    ----------
+    N : int
+        number of finite elements of a mesh
+
+    Returns
+    -------
+    pandas.DataFrame
+        (x, y, z) coordinates in m
+    """
+    try:
+        filename = f'sphere_coord_n{N}.mat'
+        coord_dict = loadmat(os.path.join('data', 'sphere', filename))
+    except FileNotFoundError as e:
+        print(e)
+    else:
+        df = pd.DataFrame(coord_dict['r_c'] / 100., columns=['x', 'y', 'z'])
+    finally:
+        pass
+    return df
+
+
+def load_head_coords():
+    """Return the coordinates of a head model.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    pandas.DataFrame
+        (x, y, z) coordinates in m
+    """
+    try:
+        filename = 'head_ijnme_simpl.csv'
+        df = pd.read_csv(os.path.join('data', 'head', filename),
+                         names=['y', 'x', 'z'])
+    except FileNotFoundError as e:
+        print(e)
+    else:
+        df = df + 0.05  # adjust
+    finally:
+        pass
+    return df
