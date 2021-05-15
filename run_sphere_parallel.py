@@ -1,14 +1,12 @@
-from concurrent.futures import ProcessPoolExecutor
+import os
 import datetime
+import time
 import itertools
 import logging
-from multiprocessing import log_to_stderr, get_logger
-import os
-import sys
-import time
+from multiprocessing import log_to_stderr
+from concurrent.futures import ProcessPoolExecutor
 
 import jax
-import jax.numpy as jnp
 import numpy as np
 import pandas as pd
 import scipy.io as sio
@@ -57,12 +55,6 @@ def _worker(iter_args):
     ys = np.zeros_like(xs) + r_c['y'].min() + d
     zs = np.zeros_like(xs)
 
-    # conversion to `jax.numpy` array format
-    xs = jnp.asarray(xs)
-    ys = jnp.asarray(ys)
-    zs = jnp.asarray(zs)
-    Is = jnp.asarray(Is)
-
     # E field
     E = r_c.apply(
         lambda row: efield(row['x'], row['y'], row['z'], xs, ys, zs, Is, f),
@@ -110,12 +102,9 @@ def _worker(iter_args):
 
 def main():
     jax.config.update("jax_enable_x64", True)
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    logging.info(f'Execution started at {datetime.datetime.now()}')
+    logger = log_to_stderr(logging.INFO)
+    logger.info(f'Execution started at {datetime.datetime.now()}')
     start_time = time.perf_counter()
-    log_to_stderr()
-    mp_logger = get_logger()
-    mp_logger.setLevel(logging.INFO)
     N = [480, 656, 1304, 1512, 2312]
     f = [3.5e9, 6e9, 10e9, 15e9, 30e9, 60e9, 80e9, 100e9]
     d = [0.002, 0.005, 0.01, 0.05, 0.15]
@@ -123,7 +112,8 @@ def main():
     with ProcessPoolExecutor() as executor:
         _ = list(tqdm(executor.map(_worker, iter_args), total=len(iter_args)))
     elapsed = time.perf_counter() - start_time
-    logging.info(f'Execution finished in {elapsed:.4f)}s')
+    logger.info(f'Execution finished at {datetime.datetime.now()}')
+    logger.info(f'Elapsed time: {elapsed:.4f}s')
 
 
 if __name__ == '__main__':
