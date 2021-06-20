@@ -123,3 +123,55 @@ def hfield(xt, yt, zt, xs, ys, zs, Is, f):
     Hz = - prefix * equad(Is * g_y, xs, 3)
     Hx = jnp.zeros_like(Hz)
     return (Hx, Hy, Hz)
+
+
+def poynting(xt, yt, zt, xs, ys, zs, Is, f):
+    """Return the magnetic field approximation value in a single point
+    in free space.
+
+    Parameters
+    ----------
+    xt : float or numpy.ndarray
+        x coordinate of the observed point(s) in free space
+    yt : float or numpy.ndarray
+        y coordinate of the observed point(s) in free space
+    zt : float or numpy.ndarray
+        z coordinate of the observed point(s) in free space
+    xs : float or numpy.ndarray
+        x coordinate of the source
+    xs : float or numpy.ndarray
+        y coordinate of the source
+    xs : float or numpy.ndarray
+        z coordinate of the source
+    Is : numpy.ndarray
+        coomplex current distribution over the antenna
+    f : float
+        frequency in GHz
+
+    Returns
+    -------
+    float or numpy.ndarray
+        Poynting vector value in space
+    """
+    omega = 2 * pi * f
+    gamma = 1j * jnp.sqrt(omega ** 2 * mu_0 * eps_0)
+    dx = xs[1] - xs[0]
+    Is_x = holoborodko(Is, dx)
+
+    g = green(xt, yt, zt, xs, ys, zs, f)
+    g_x, g_y, g_z = green_grad(xt + 0j, yt + 0j, zt + 0j, xs, ys, zs, f)
+
+    e_prefix = 1 / (1j * 4 * pi * omega * eps_0)
+    Ex = e_prefix * (- equad(Is_x * g_x, xs, 3)
+                   - gamma ** 2 * equad(Is * g, xs, 3))
+    Ey = e_prefix * (equad(Is_x * g_y, xs, 3))
+    Ez = e_prefix * (equad(Is_x * g_z, xs, 3))
+
+    h_prefix = 1 / (4 * pi)
+    Hy = h_prefix * equad(Is * g_z, xs, 3)
+    Hz = - h_prefix * equad(Is * g_y, xs, 3)
+
+    Sx = Ey * Hz.conjugate() - Ez * Hy.conjugate()
+    Sy = Ex * Hz.conjugate()
+    Sz = Ex * Hy.conjugate()
+    return (Sx, Sy, Sz)
