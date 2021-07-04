@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 
 
-def fig_config(latex=False, nrows=1, ncols=1, scaler=1.0):
+def fig_config(latex=False, nrows=1, ncols=1, scaler=1.0, text_size=16):
     """Configure matplotlib parameters for better visualization style.
-    
+
     Parameters
     ----------
     latex : bool, optional
@@ -14,7 +14,9 @@ def fig_config(latex=False, nrows=1, ncols=1, scaler=1.0):
         number of figures column-wise
     scaler : float, optional
         scaler for each figure
-        
+    text_size : int, optional
+        font size for textual elements in figure
+
     Returns
     -------
     None
@@ -22,7 +24,7 @@ def fig_config(latex=False, nrows=1, ncols=1, scaler=1.0):
     plt.rcParams.update({
         'text.usetex': latex,
         'font.family': 'serif',
-        'font.size': 16,
+        'font.size': text_size,
         'figure.figsize': (4.774 * scaler * ncols, 2.950 * scaler * nrows),
         'lines.linewidth': 3,
         'lines.dashed_pattern': (3, 5),
@@ -30,22 +32,22 @@ def fig_config(latex=False, nrows=1, ncols=1, scaler=1.0):
         'lines.markeredgecolor': 'k',
         'lines.markeredgewidth': 0.5,
         'image.origin': 'lower',
-        'axes.labelsize': 16,
-        'axes.titlesize': 16,
+        'axes.labelsize': text_size,
+        'axes.titlesize': text_size,
         'grid.linewidth': 0.5,
-        'legend.fontsize': 16,
-        'xtick.labelsize': 16,
-        'ytick.labelsize': 16,
+        'legend.fontsize': text_size,
+        'xtick.labelsize': text_size,
+        'ytick.labelsize': text_size,
     })
 
 
 def fig_config_reset():
     """Recover matplotlib default parameters.
-    
+
     Parameters
     ----------
     None
-    
+
     Returns
     -------
     None
