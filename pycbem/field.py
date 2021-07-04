@@ -31,7 +31,7 @@ def green(xt, yt, zt, xs, ys, zs, f):
     Returns
     -------
     float or numpy.ndarray
-        Green function value for the observed point(s)
+        Green function value for the observed point(s).
     """
     omega = 2 * pi * f
     k = jnp.sqrt(omega ** 2 * eps_0 * mu_0)
@@ -72,8 +72,9 @@ def efield(xt, yt, zt, xs, ys, zs, Is, f):
 
     Returns
     -------
-    float or numpy.ndarray
-        electric field values for the observed point
+    tuple
+        Values of electric vector field in x, y and z direction for
+        given target point.
     """
     omega = 2 * pi * f
     gamma = 1j * jnp.sqrt(omega ** 2 * mu_0 * eps_0)
@@ -114,8 +115,9 @@ def hfield(xt, yt, zt, xs, ys, zs, Is, f):
 
     Returns
     -------
-    float or numpy.ndarray
-        magnetic field values for the observed point
+    tuple
+        Values of magnetic vector field in x, y and z direction for
+        given target point.
     """
     prefix = 1 / (4 * pi)
     _, g_y, g_z = green_grad(xt + 0j, yt + 0j, zt + 0j, xs, ys, zs, f)
@@ -150,8 +152,9 @@ def poynting(xt, yt, zt, xs, ys, zs, Is, f):
 
     Returns
     -------
-    float or numpy.ndarray
-        Poynting vector value in space
+    tuple
+        Values of Poynting vector in x, y and z direction for given
+        target point.
     """
     omega = 2 * pi * f
     gamma = 1j * jnp.sqrt(omega ** 2 * mu_0 * eps_0)
@@ -163,7 +166,7 @@ def poynting(xt, yt, zt, xs, ys, zs, Is, f):
 
     e_prefix = 1 / (1j * 4 * pi * omega * eps_0)
     Ex = e_prefix * (- equad(Is_x * g_x, xs, 3)
-                   - gamma ** 2 * equad(Is * g, xs, 3))
+                     - gamma ** 2 * equad(Is * g, xs, 3))
     Ey = e_prefix * (equad(Is_x * g_y, xs, 3))
     Ez = e_prefix * (equad(Is_x * g_z, xs, 3))
 

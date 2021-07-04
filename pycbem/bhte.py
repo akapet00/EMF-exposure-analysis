@@ -48,7 +48,7 @@ def init_temp(z, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c, T_f, Q_m):
     Returns
     -------
     numpy.ndarray
-        initial temperature distribution prior to radiation
+        Initial temperature distribution prior to radiation.
     """
     pen_depth = np.max(z)
     w_b = m_b * rho_b * C_b
@@ -90,7 +90,7 @@ def delta_temp_analytic(t, pen_depth, k, rho, C, I0, T_tr):
     Returns
     -------
     numpy.ndarray
-        rise in temperature over exposure time
+        Rise in temperature over exposure time.
     """
     C_1 = 2 * I0 * T_tr / np.sqrt(pi * k * rho * C)
     C_2 = I0 * T_tr * pen_depth / k
@@ -127,7 +127,7 @@ def delta_temp(t, N, pen_depth, k, rho, C, m_b, I0, T_tr):
     Returns
     -------
     numpy.ndarray
-        temperature distribution in time for each collocation point
+        Temperature distribution in time and space.
     """
     dx = pen_depth / N
     x = np.linspace(0, pen_depth, N)
@@ -201,7 +201,7 @@ def temp3(t, N, area, pen_depth, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c,
     Returns
     -------
     numpy.ndarray
-        temperature distribution in time for each collocation point
+        Temperature distribution in time for each collocation point.
     """
     Nx, Ny, Nz = N
     X, Y = area
