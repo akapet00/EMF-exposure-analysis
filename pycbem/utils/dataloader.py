@@ -24,9 +24,9 @@ def load_tissue_diel_properties(tissue, f):
     Parameters
     ----------
     tissue : str
-        type of human tissue
+        Type of human tissue.
     f : float
-        radiation frequency
+        Radiation frequency in Hz.
 
     Returns
     -------
@@ -43,7 +43,7 @@ def load_tissue_diel_properties(tissue, f):
     df = pd.read_csv(tissue_diel_properties_path)
     df = df[(df.frequency == f) & (df.tissue == tissue)]
     _, _, sigma, eps_r, tan_loss, pen_depth = df.to_numpy()[0]
-    return (sigma, eps_r, tan_loss, pen_depth)
+    return sigma, eps_r, tan_loss, pen_depth
 
 
 def load_antenna_el_properties(f):
@@ -58,13 +58,13 @@ def load_antenna_el_properties(f):
     Parameters
     ----------
     f : float
-        operating frequency in GHz
+        Operating frequency in GHz.
 
     Returns
     -------
     pandas.DataFrame
-        current distribution over the wire alongside additional
-        configuration details
+        Current distribution over the wire alongside additional
+        configuration details.
     """
     assert f / 1e9 in SUPPORTED_FREQS, \
         (f'{f / 1e9} is not in supported. '
@@ -89,7 +89,7 @@ def load_sphere_coords(N):
     Returns
     -------
     pandas.DataFrame
-        (x, y, z) coordinates in m
+        x, y and z coordinates.
     """
     try:
         filename = f'sphere_coord_n{N}.mat'
@@ -113,7 +113,7 @@ def load_head_coords():
     Returns
     -------
     pandas.DataFrame
-        (x, y, z) coordinates in m
+        x, y and z coordinates.
     """
     try:
         filename = 'head_ijnme_simpl.csv'
