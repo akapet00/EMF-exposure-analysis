@@ -13,24 +13,24 @@ def green(xt, yt, zt, xs, ys, zs, f):
 
     Parameters
     ----------
-    xt : float or numpy.ndarray
-        x coordinate of the observed point(s) in free space
-    yt : float or numpy.ndarray
-        y coordinate of the observed point(s) in free space
-    zt : float or numpy.ndarray
-        z coordinate of the observed point(s) in free space
+    xt : float
+        x coordinate of the observed point in free space.
+    yt : float
+        y coordinate of the observed point in free space.
+    zt : float
+        z coordinate of the observed point in free space.
     xs : float or numpy.ndarray
-        x coordinate of the source
-    ys : float or numpy.ndarray
-        y coordinate of the source
-    zs : float or numpy.ndarray
-        z coordinate of the source
+        x coordinates) of the source.
+    xs : float or numpy.ndarray
+        y coordinates of the source.
+    xs : float or numpy.ndarray
+        z coordinates of the source.
     f : float
-        frequency in GHz
+        Frequency in GHz.
 
     Returns
     -------
-    float or numpy.ndarray
+    float or numpy.ndarray or jax.numpy.ndarray
         Green function value for the observed point(s).
     """
     omega = 2 * pi * f
@@ -53,22 +53,22 @@ def efield(xt, yt, zt, xs, ys, zs, Is, f):
 
     Parameters
     ----------
-    xt : float or numpy.ndarray
-        x coordinate of the observed point(s) in free space
-    yt : float or numpy.ndarray
-        y coordinate of the observed point(s) in free space
-    zt : float or numpy.ndarray
-        z coordinate of the observed point(s) in free space
+    xt : float
+        x coordinate of the observed point in free space.
+    yt : float
+        y coordinate of the observed point in free space.
+    zt : float
+        z coordinate of the observed point in free space.
     xs : float or numpy.ndarray
-        x coordinate of the source
+        x coordinates) of the source.
     xs : float or numpy.ndarray
-        y coordinate of the source
+        y coordinates of the source.
     xs : float or numpy.ndarray
-        z coordinate of the source
-    Is : numpy.ndarray
-        coomplex current distribution over the antenna
+        z coordinates of the source.
+    Is : jax.numpy.ndarray or numpy.ndarray
+        Complex current distribution along the antenna.
     f : float
-        frequency in GHz
+        Frequency in GHz.
 
     Returns
     -------
@@ -87,7 +87,7 @@ def efield(xt, yt, zt, xs, ys, zs, Is, f):
                    - gamma ** 2 * equad(Is * g, xs, 3))
     Ey = prefix * (equad(Is_x * g_y, xs, 3))
     Ez = prefix * (equad(Is_x * g_z, xs, 3))
-    return (Ex, Ey, Ez)
+    return Ex, Ey, Ez
 
 
 def hfield(xt, yt, zt, xs, ys, zs, Is, f):
@@ -96,22 +96,22 @@ def hfield(xt, yt, zt, xs, ys, zs, Is, f):
 
     Parameters
     ----------
-    xt : float or numpy.ndarray
-        x coordinate of the observed point(s) in free space
-    yt : float or numpy.ndarray
-        y coordinate of the observed point(s) in free space
-    zt : float or numpy.ndarray
-        z coordinate of the observed point(s) in free space
+    xt : float
+        x coordinate of the observed point in free space.
+    yt : float
+        y coordinate of the observed point in free space.
+    zt : float
+        z coordinate of the observed point in free space.
     xs : float or numpy.ndarray
-        x coordinate of the source
+        x coordinates) of the source.
     xs : float or numpy.ndarray
-        y coordinate of the source
+        y coordinates of the source.
     xs : float or numpy.ndarray
-        z coordinate of the source
-    Is : numpy.ndarray
-        coomplex current distribution over the antenna
+        z coordinates of the source.
+    Is : jax.numpy.ndarray or numpy.ndarray
+        Complex current distribution along the antenna.
     f : float
-        frequency in GHz
+        Frequency in GHz.
 
     Returns
     -------
@@ -124,7 +124,7 @@ def hfield(xt, yt, zt, xs, ys, zs, Is, f):
     Hy = prefix * equad(Is * g_z, xs, 3)
     Hz = - prefix * equad(Is * g_y, xs, 3)
     Hx = jnp.zeros_like(Hz)
-    return (Hx, Hy, Hz)
+    return Hx, Hy, Hz
 
 
 def poynting(xt, yt, zt, xs, ys, zs, Is, f):
@@ -133,22 +133,22 @@ def poynting(xt, yt, zt, xs, ys, zs, Is, f):
 
     Parameters
     ----------
-    xt : float or numpy.ndarray
-        x coordinate of the observed point(s) in free space
-    yt : float or numpy.ndarray
-        y coordinate of the observed point(s) in free space
-    zt : float or numpy.ndarray
-        z coordinate of the observed point(s) in free space
+    xt : float
+        x coordinate of the observed point(s) in free space.
+    yt : float
+        y coordinate of the observed point(s) in free space.
+    zt : float
+        z coordinate of the observed point(s) in free space.
     xs : float or numpy.ndarray
-        x coordinate of the source
+        x coordinates of the source.
     xs : float or numpy.ndarray
-        y coordinate of the source
+        y coordinates of the source.
     xs : float or numpy.ndarray
-        z coordinate of the source
-    Is : numpy.ndarray
-        coomplex current distribution over the antenna
+        z coordinates of the source.
+    Is : numpy.ndarray or jax.numpy.ndarray
+        Complex current distribution over the antenna.
     f : float
-        frequency in GHz
+        Frequency in GHz.
 
     Returns
     -------
@@ -177,4 +177,4 @@ def poynting(xt, yt, zt, xs, ys, zs, Is, f):
     Sx = Ey * Hz.conjugate() - Ez * Hy.conjugate()
     Sy = Ex * Hz.conjugate()
     Sz = Ex * Hy.conjugate()
-    return (Sx, Sy, Sz)
+    return Sx, Sy, Sz
