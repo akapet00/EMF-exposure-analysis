@@ -16,7 +16,7 @@ W = [0.3478548451374538, 0.6521451548625461, ...
         0.6521451548625461, 0.3478548451374538]; %  integration weights
 
 % variables
-frequencies = [3., 3.5, 6., 10., 15., 20., 30., 40., 60., 80., 100.];
+frequencies = [3., 3.5, 6., 10., 15., 20., 26., 30., 40., 60., 80., 100.];
 dipole_scalers = 2;
 
 % simulation
@@ -43,4 +43,4 @@ disp('Run finalized');
 toc;
 
 % save simulation
-save('dataset.mat', 'output');
+save('fs_current.mat', 'output');
