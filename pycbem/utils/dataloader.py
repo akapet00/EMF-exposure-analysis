@@ -9,7 +9,7 @@ SUPPORTED_TISSUES = ['air', 'blood', 'blood_vessel', 'body_fluid',
                      'brain_grey_matter', 'brain_white_matter', 'cerebellum',
                      'cerebro_spinal_fluid', 'dura', 'fat', 'muscle',
                      'skin_dry', 'skin_wet']
-SUPPORTED_FREQS = [3., 3.5, 6., 10., 15., 20., 30., 40., 60., 80., 100.]
+SUPPORTED_FREQS = [3., 3.5, 6., 10., 15., 20., 26., 30., 40., 60., 80., 100.]
 
 
 def load_tissue_diel_properties(tissue, f):
@@ -38,7 +38,8 @@ def load_tissue_diel_properties(tissue, f):
         raise ValueError(f'Unsupported tissue. Choose {SUPPORTED_TISSUES}.')
     if 1e9 > f > 100e9:
         raise ValueError('Invalid frequency. Choose in range [1, 100] GHz')
-    tissue_diel_properties_path = os.path.join('data', 'tissue_properties',
+    tissue_diel_properties_path = os.path.join('data', 'target-model',
+                                               'tissue_properties',
                                                'tissue_diel_properties.csv')
     df = pd.read_csv(tissue_diel_properties_path)
     df = df[(df.frequency == f) & (df.tissue == tissue)]
@@ -69,7 +70,8 @@ def load_antenna_el_properties(f):
     assert f / 1e9 in SUPPORTED_FREQS, \
         (f'{f / 1e9} is not in supported. '
          f'Supported frequency values: {SUPPORTED_FREQS}.')
-    data = loadmat(os.path.join('data', 'dipole', 'fs_current.mat'))['output']
+    data = loadmat(os.path.join('data', 'source-model',
+                                'dipole', 'fs_current.mat'))['output']
     df = pd.DataFrame(data,
                       columns=['N', 'f', 'L', 'v', 'x', 'ireal', 'iimag'])
     df_f = df[df.f == f]
@@ -92,8 +94,9 @@ def load_sphere_coords(N):
         x, y and z coordinates.
     """
     try:
-        filename = f'sphere_coord_n{N}.mat'
-        coord_dict = loadmat(os.path.join('data', 'sphere', filename))
+        fname = f'sphere_coord_n{N}.mat'
+        coord_dict = loadmat(os.path.join('data', 'target-model',
+                                          'spherical-head', fname))
     except FileNotFoundError as e:
         print(e)
     else:
@@ -116,8 +119,9 @@ def load_head_coords():
         x, y and z coordinates.
     """
     try:
-        filename = 'head_ijnme_simpl.csv'
-        df = pd.read_csv(os.path.join('data', 'head', filename),
+        fname = 'head_ijnme_simpl.csv'
+        df = pd.read_csv(os.path.join('data', 'target-model',
+                                      'realistic-head', fname),
                          names=['y', 'x', 'z'])
     except FileNotFoundError as e:
         print(e)
