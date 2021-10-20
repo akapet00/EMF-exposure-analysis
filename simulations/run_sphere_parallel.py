@@ -1,4 +1,19 @@
+"""Compute the electromagnetic power density distribution over a
+spherical model of human head. Each head model is sampled as a 3-D
+point cloud with 480, 656, 1304, 1512 and 2312 number of points,
+respectively. Considered frequencies are 3.5, 6, 10, 15, 30, 60, 80 and
+100 GHz. Antenna-to-head distances are set to be 0.002, 0.005, 0.01,
+0.05, 0.15 m for each frequency and each head model.
+
+Output data are stored in output-sphere-parallel-2021-05-15 directory.
+
+Author: Ante Lojic Kapetanovic
+Date: May 15th, 2021
+"""
+
 import os
+if os.getcwd().split("/")[-1] == "simulations":
+    os.chdir(os.pardir)
 import datetime
 import time
 import itertools
@@ -94,9 +109,13 @@ def _worker(iter_args):
 
     # store dataframe into hdf5 and .mat
     out_filename = f'sphere_n{N}_d{d * 1e3}_f{f / 1e9}'
-    r_c_calc.to_hdf(os.path.join('simulations', out_filename + '.h5'),
+    r_c_calc.to_hdf(os.path.join('simulations',
+                                 'output-sphere-parallel-2021-05-15',
+                                 out_filename + '.h5'),
                     key='df', mode='w')
-    sio.savemat(os.path.join('simulations', out_filename + '.mat'),
+    sio.savemat(os.path.join('simulations',
+                             'output-sphere-parallel-2021-05-15',
+                             out_filename + '.mat'),
                 r_c_calc_dict)
 
 
