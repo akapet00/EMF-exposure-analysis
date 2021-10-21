@@ -27,8 +27,8 @@ import pandas as pd
 import scipy.io as sio
 from tqdm import tqdm
 
-from pycbem.field import efield, hfield
-from pycbem.utils.dataloader import load_antenna_el_properties
+from src.field import efield, hfield
+from src.utils.dataloader import load_antenna_el_properties
 
 
 def _pd(row):
