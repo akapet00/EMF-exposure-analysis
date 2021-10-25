@@ -1,21 +1,26 @@
 import matplotlib.pyplot as plt
 
 
-def fig_config(latex=False, nrows=1, ncols=1, scaler=1.0, text_size=16):
+def fig_config(latex=False, nrows=1, ncols=1, scaler=1.0, text_size=16,
+               line_width=3, marker_size=5):
     """Configure matplotlib parameters for better visualization style.
 
     Parameters
     ----------
     latex : bool, optional
-        If true, LaTeX backend will be used
+        If true, LaTeX backend will be used.
     nrows : int, optional
-        number of figures row-wise
+        Number of figures row-wise.
     ncols : int, optional
-        number of figures column-wise
+        Number of figures column-wise.
     scaler : float, optional
-        scaler for each figure
+        Scaler for each figure.
     text_size : int, optional
-        font size for textual elements in figure
+        Font size for textual elements in figure.
+    line_width : int, optional
+        Line width.
+    marker_size : int, optional
+        Marker size for scatter plots.
 
     Returns
     -------
@@ -26,9 +31,9 @@ def fig_config(latex=False, nrows=1, ncols=1, scaler=1.0, text_size=16):
         'font.family': 'serif',
         'font.size': text_size,
         'figure.figsize': (4.774 * scaler * ncols, 2.950 * scaler * nrows),
-        'lines.linewidth': 3,
+        'lines.linewidth': line_width,
         'lines.dashed_pattern': (3, 5),
-        'lines.markersize': 10,
+        'lines.markersize': marker_size,
         'lines.markeredgecolor': 'k',
         'lines.markeredgewidth': 0.5,
         'image.origin': 'lower',
