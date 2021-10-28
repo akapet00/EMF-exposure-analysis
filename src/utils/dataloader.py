@@ -130,3 +130,25 @@ def load_head_coords():
     finally:
         pass
     return df
+
+
+def load_ear_data(mode, f, d):
+    """Return the coordinates for the ear model, where each point in
+    space has E and H field values already computed given mode,
+    frequency and distance from the source of radiation.
+
+    Parameters
+    ----------
+    mode : str
+        Either TE (transversal electric) or TM (transversal magnetic).
+    f : float
+        Frequency in GHz.
+    d : float
+        Distance between the radiation source and the target in meters.
+
+    Returns
+    -------
+    pandas.DataFrame
+        x, y and z coordinates with associated field values.
+    """
+    raise NotImplementedError
