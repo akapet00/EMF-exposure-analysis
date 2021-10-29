@@ -151,4 +151,42 @@ def load_ear_data(mode, f, d):
     pandas.DataFrame
         x, y and z coordinates with associated field values.
     """
-    raise NotImplementedError
+    mode = str(mode).upper()
+    f = int(f)
+    d = int(d * 1e3)
+    assert mode in ['TE', 'TM'], 'Unrecognized mode.'
+    assert f in [26], 'Currently unsupported frequency.'
+    assert d in [1], 'Currently unsupported distance.'
+    try:
+        dirname = os.path.join('data', 'target-model', 'realistic-ear')
+        fname_E = f'E_3D_ear_{f}GHz_{mode}_{d}mm_surface.txt'
+        fname_H = f'H_3D_ear_{f}GHz_{mode}_{d}mm_surface.txt'
+        df_E = pd.read_csv(os.path.join(dirname, fname_E),
+                           names=['x [mm]', 'y [mm]', 'z [mm]',
+                                  'ExRe [V/m]', 'ExIm [V/m]',
+                                  'EyRe [V/m]', 'EyIm [V/m]',
+                                  'EzRe [V/m]', 'EzIm [V/m]',
+                                  'area [mm^2]'],
+                           header=None, delim_whitespace=True, skiprows=[0, 1])
+        df_H = pd.read_csv(os.path.join(dirname, fname_H),
+                           names=['x [mm]', 'y [mm]', 'z [mm]',
+                                  'HxRe [A/m]', 'HxIm [A/m]',
+                                  'HyRe [A/m]', 'HyIm [A/m]',
+                                  'HzRe [A/m]', 'HzIm [A/m]',
+                                  'area [mm^2]'],
+                           header=None, delim_whitespace=True, skiprows=[0, 1])
+    except FileNotFoundError as e:
+        print(e)
+    else:
+        df = pd.concat([df_E[['x [mm]', 'y [mm]', 'z [mm]',
+                              'ExRe [V/m]', 'ExIm [V/m]',
+                              'EyRe [V/m]', 'EyIm [V/m]',
+                              'EzRe [V/m]', 'EzIm [V/m]']],
+                        df_H[['HxRe [A/m]', 'HxIm [A/m]',
+                              'HyRe [A/m]', 'HyIm [A/m]',
+                              'HzRe [A/m]', 'HzIm [A/m]',
+                              'area [mm^2]']]],
+                       axis=1, copy=False)
+    finally:
+        pass
+    return df
