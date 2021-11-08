@@ -59,20 +59,20 @@ def fig_config_reset():
     None
     """
     plt.rcParams.update(plt.rcParamsDefault)
-    
+
 
 def set_axes_equal(ax):
     """Return 3-D axes with equal scale.
-    
+
     Note: This function is implemented as in https://stackoverflow.com/a/31364297/15005103
     because matplotlib currently does not support setting ``ax.axis('equal')``
     for 3-D plotting.
-    
+
     Parameters
     ----------
     ax : matplotlib.axes._subplots.Axes3DSubplot
         Axes with 'auto' scale settings.
-    
+
     Returns
     -------
     matplotlib.axes._subplots.Axes3DSubplot
@@ -96,3 +96,29 @@ def set_axes_equal(ax):
     ax.set_ylim3d([y_middle - plot_radius, y_middle + plot_radius])
     ax.set_zlim3d([z_middle - plot_radius, z_middle + plot_radius])
     return ax
+
+
+def save_fig(fig, fname, formats=['pdf']):
+    """Save the current figure.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+        Figure to be saved.
+    fname : str or path-like or binary file-like
+        A path, or a Python file-like objec without the format
+        extension - it will automatically be added depending on the
+        `formats` list.
+    formats : list, optional
+        The file formats in a list. Figure will be saved in pdf format
+        by default.
+
+    Returns
+    -------
+    None
+    """
+    for format in formats:
+        fname = f'{fname}.{format}'
+        fig.savefig(fname, dpi=300, facecolor='w', edgecolor='w',
+                    orientation='portrait', format=format, transparent=True,
+                    bbox_inches='tight', pad_inches=0.1)
