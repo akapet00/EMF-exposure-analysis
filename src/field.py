@@ -79,7 +79,7 @@ def efield(xt, yt, zt, xs, ys, zs, Is, f):
     omega = 2 * pi * f
     gamma = 1j * jnp.sqrt(omega ** 2 * mu_0 * eps_0)
     dx = xs[1] - xs[0]
-    Is_x = holoborodko(Is, dx)
+    Is_x = jnp.asarray(holoborodko(Is, dx))
     prefix = 1 / (1j * 4 * pi * omega * eps_0)
     g = green(xt, yt, zt, xs, ys, zs, f)
     g_x, g_y, g_z = green_grad(xt + 0j, yt + 0j, zt + 0j, xs, ys, zs, f)
@@ -160,7 +160,7 @@ def poynting(xt, yt, zt, xs, ys, zs, f, Is, Is_x=None):
     gamma = 1j * jnp.sqrt(omega ** 2 * mu_0 * eps_0)
     if Is_x is None:
         dx = xs[1] - xs[0]
-        Is_x = holoborodko(Is, dx)
+        Is_x = jnp.asarray(holoborodko(Is, dx))
 
     g = green(xt, yt, zt, xs, ys, zs, f)
     g_x, g_y, g_z = green_grad(xt + 0j, yt + 0j, zt + 0j, xs, ys, zs, f)
@@ -215,7 +215,7 @@ def poynting_parallel(xt, yt, zt, xs, ys, zs, f, Is):
     omega = 2 * pi * f
     gamma = 1j * jnp.sqrt(omega ** 2 * mu_0 * eps_0)
     dx = xs[1] - xs[0]
-    Is_x = holoborodko(Is, dx)
+    Is_x = jnp.asarray(holoborodko(Is, dx))
 
     g_vmap_z = vmap(green, in_axes=(None, None, 0, None, None, None, None))
     g_vmap_yz = vmap(g_vmap_z, in_axes=(None, 0, None, None, None, None, None))

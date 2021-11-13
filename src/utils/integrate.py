@@ -1,4 +1,3 @@
-import jax.numpy as jnp
 import numpy as np
 from scipy.interpolate import interp1d, RectBivariateSpline
 from scipy.special import roots_legendre
@@ -28,8 +27,8 @@ def quad(func, a, b, args=(), n_points=3):
     """
     if not callable(func):
         raise ValueError('`func` must be callable')
-    psi, w = roots_legendre(n_points)
-    xi = ((b - a) / 2) * psi + (a + b) / 2
+    x, w = roots_legendre(n_points)
+    xi = (b - a) / 2 * x + (a + b) / 2
     return (b - a) / 2 * w @ func(xi, *args)
 
 
@@ -55,10 +54,10 @@ def dblquad(func, bbox, args=(), n_points=9):
     """
     if not callable(func):
         raise ValueError('`func` must be callable')
-    psi, w = roots_legendre(n_points)
+    x, w = roots_legendre(n_points)
     ay, by, ax, bx = bbox
-    xix = (bx - ax) / 2 * psi + (ax + bx) / 2
-    xiy = (by - ay) / 2 * psi + (ay + by) / 2
+    xix = (bx - ax) / 2 * x + (ax + bx) / 2
+    xiy = (by - ay) / 2 * x + (ay + by) / 2
     return (bx - ax) / 2 * (by - ay) / 2 * w @ func(xiy, xix, *args) @ w
 
 
@@ -80,7 +79,7 @@ def elementwise_quad(y, x, n_points=3):
     float
         Approximation of the integral of a given function.
     """
-    if not isinstance(y, (np.ndarray, jnp.ndarray)):
+    if not isinstance(y, (np.ndarray, )):
         raise Exception('`y` must be numpy.ndarray.')
     try:
         a = x[0]
@@ -111,7 +110,7 @@ def elementwise_dblquad(z, x, y, n_points=9):
     float
         Approximation of the integral of a given function.
     """
-    if not isinstance(y, (np.ndarray, jnp.ndarray)):
+    if not isinstance(y, (np.ndarray, )):
         raise Exception('`y` must be numpy.ndarray.')
     try:
         bbox = [y[0], y[-1], x[0], x[-1]]
