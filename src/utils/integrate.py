@@ -1,3 +1,6 @@
+import collections
+
+import jax.numpy as jnp
 import numpy as np
 from scipy.interpolate import interp1d, RectBivariateSpline
 from scipy.special import roots_legendre
@@ -79,13 +82,13 @@ def elementwise_quad(y, x, n_points=3):
     float
         Approximation of the integral of a given function.
     """
-    if not isinstance(y, (np.ndarray, )):
-        raise Exception('`y` must be numpy.ndarray.')
+    if not isinstance(y, (collections.Sequence, jnp.ndarray, np.ndarray, )):
+        raise Exception('`y` must be array-like.')
     try:
         a = x[0]
         b = x[-1]
     except TypeError:
-        print('`x` must be numpy.ndarray')
+        print('`x` must be array-like')
     func = interp1d(x, y, kind='cubic')
     return quad(func, a, b, n_points=n_points)
 
@@ -110,11 +113,11 @@ def elementwise_dblquad(z, x, y, n_points=9):
     float
         Approximation of the integral of a given function.
     """
-    if not isinstance(y, (np.ndarray, )):
-        raise Exception('`y` must be numpy.ndarray.')
+    if not isinstance(y, (collections.Sequence, jnp.ndarray, np.ndarray, )):
+        raise Exception('`y` must be array-like.')
     try:
         bbox = [y[0], y[-1], x[0], x[-1]]
     except TypeError:
-        print('Both `x` and `y` must be numpy.ndarray')
+        print('Both `x` and `y` must be arrays')
     func = RectBivariateSpline(y, x, z, bbox=bbox)
     return dblquad(func, bbox, n_points=n_points)
