@@ -64,9 +64,9 @@ def fig_config_reset():
 def set_axes_equal(ax):
     """Return 3-D axes with equal scale.
 
-    Note: This function is implemented as in https://stackoverflow.com/a/31364297/15005103
-    because matplotlib currently does not support setting ``ax.axis('equal')``
-    for 3-D plotting.
+    Note: This function is implemented as in:
+    https://stackoverflow.com/a/31364297/15005103 because there is no
+    support setting that would enable ``ax.axis('equal')`` in 3-D.
 
     Parameters
     ----------
