@@ -155,8 +155,8 @@ def load_ear_data(mode, f):
     assert f in [26, 60], 'Currently unsupported frequency.'
     try:
         dirname = os.path.join('data', 'target-model', 'realistic-ear')
-        fname_E = f'E_3D_ear_{f}GHz_{mode}_aBig_surface.txt'
-        fname_H = f'H_3D_ear_{f}GHz_{mode}_aBig_surface.txt'
+        fname_E = f'E_3D_ear_{f}GHz_{mode}_surface.txt'
+        fname_H = f'H_3D_ear_{f}GHz_{mode}_surface.txt'
         df_E = pd.read_csv(os.path.join(dirname, fname_E),
                            names=['x [mm]', 'y [mm]', 'z [mm]',
                                   'ExRe [V/m]', 'ExIm [V/m]',
