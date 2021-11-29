@@ -87,7 +87,7 @@ def efield(xt, yt, zt, xs, ys, zs, Is, f):
                    - gamma ** 2 * equad(Is * g, xs, 3))
     Ey = prefix * (equad(Is_x * g_y, xs, 3))
     Ez = prefix * (equad(Is_x * g_z, xs, 3))
-    return Ex, Ey, Ez
+    return Ex.item(), Ey.item(), Ez.item()
 
 
 def hfield(xt, yt, zt, xs, ys, zs, Is, f):
@@ -124,7 +124,7 @@ def hfield(xt, yt, zt, xs, ys, zs, Is, f):
     Hy = prefix * equad(Is * g_z, xs, 3)
     Hz = - prefix * equad(Is * g_y, xs, 3)
     Hx = jnp.zeros_like(Hz)
-    return Hx, Hy, Hz
+    return Hx.item(), Hy.item(), Hz.item()
 
 
 def poynting(xt, yt, zt, xs, ys, zs, f, Is, Is_x=None):
