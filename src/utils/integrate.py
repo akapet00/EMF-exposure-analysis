@@ -126,7 +126,7 @@ def elementwise_dblquad(points, values, leggaus_deg=9, interp_func=None,
         Interpolation function. If not set radial basis function
         interpolation is used.
     kwargs : dict, optional
-        Additional keyword arguments for interpolation function.
+        Additional keyword arguments for the interpolation function.
 
     Returns
     -------
@@ -134,16 +134,16 @@ def elementwise_dblquad(points, values, leggaus_deg=9, interp_func=None,
         Approximation of the integral of a given function.
     """
     if not isinstance(values, (collections.Sequence, jnp.ndarray, np.ndarray)):
-        raise Exception('`y` must be array-like.')
+        raise Exception('`values` must be array-like.')
     try:
         bbox = [points[:, 0].min(), points[:, 0].max(),
                 points[:, 1].min(), points[:, 1].max()]
     except TypeError:
-        print('Both `x` and `y` must be arrays')
+        print('`points` must be a 2-column array.')
     if interp_func is None:
         func = interpolate.Rbf(points[:, 0], points[:, 1], values, **kwargs)
     else:
-        func = interp_func(points[:, 0], points[:, 1], values, **kwargs)
+        func = interp_func(points, values, **kwargs)
     return dblquad(func, bbox, leggauss_deg=leggaus_deg)
 
 
@@ -179,4 +179,55 @@ def elementwise_rectquad(x, y, values, leggauss_deg=9, **kwargs):
         print('Both `x` and `y` must be arrays')
     func = interpolate.RectBivariateSpline(x, y, values, bbox=bbox, **kwargs)
     I_approx = func.integral(*bbox)
+    return I_approx
+
+
+def elementwise_circquad(points, values, radius, center, degree=9,
+                         interp_func=None, **kwargs):
+    """Return the approximate value of the integral of a given sampled
+    2-D data over a disk by using the appropriate quadrature scheme for
+    a given degree of integration.
+
+    Parameters
+    ----------
+    points : numpy.ndarray
+        Data point coordinates of shape (n, D).
+    values : numpy.ndarray
+        Sampled integrand function values of shape (n, ). If the data
+        is sampled over a grid data, it could also be of shape (m, m),
+        where m corresponds to the number of data points coordinates.
+    radius : float
+        Radius of the integration domain.
+    center : list or numpy.ndarray
+        x- and y-coordinate of the center of the integration domain.
+    degree : int, optional
+        Degree of the quadrature. Should be less or equal to 21.
+    interp_func : callable, optional
+        Interpolation function. If not set radial basis function
+        interpolation is used.
+    kwargs : dict, optional
+        Additional keyword arguments for the interpolation function.
+
+    Returns
+    -------
+    float
+        Approximation of the integral of a given function.
+    """
+    try:
+        import quadpy
+    except ImportError:
+        raise ImportError('`quadpy` should be installed manually. Try again.')
+    degree = int(degree)
+    if degree > 21:
+        raise ValueError('Highest integration order is currently 21.')
+    if not isinstance(values, (collections.Sequence, jnp.ndarray, np.ndarray)):
+        raise Exception('`values` must be array-like.')
+    points = np.atleast_2d(points)
+    if (interp_func is None) or (interp_func is interpolate.Rbf):
+        func = interpolate.Rbf(points[:, 0], points[:, 1], values, **kwargs)
+    else:
+        func = interp_func(points, values, **kwargs)
+    scheme = quadpy.s2.get_good_scheme(degree)
+    I_approx = scheme.integrate(f=lambda x: func(x[0], x[1]),
+                                center=center, radius=radius, dot=np.matmul)
     return I_approx
