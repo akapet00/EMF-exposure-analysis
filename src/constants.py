@@ -1,4 +1,3 @@
-
 """Electromagnetic constants."""
 
 from scipy.constants import epsilon_0 as eps_0
