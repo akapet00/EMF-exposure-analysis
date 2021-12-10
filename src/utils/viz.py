@@ -1,3 +1,5 @@
+from itertools import product
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -122,3 +124,179 @@ def save_fig(fig, fname, formats=['pdf']):
         fig.savefig(fname, dpi=300, facecolor='w', edgecolor='w',
                     orientation='portrait', format=format, transparent=True,
                     bbox_inches='tight', pad_inches=0.1)
+
+
+def set_colorblind():
+    """Colorblind coloring.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+    """
+    try:
+        import seaborn as sns
+    except ImportError:
+        raise ImportError('`seaborn` is not installed.')
+    sns.set(style='ticks', palette='colorblind')
+
+
+def scatter_2d(xy_dict, figsize=None, s=20, c=None, alpha=1):
+    """2-D scatter plot.
+
+    Parameters
+    ----------
+    xy_dict : dictionary
+        Keys are label names, values are the corresponding values.
+        First input goes on the x-axis, the second one goes on the
+        y-axis, and the third one, if exists, defines the color of each
+        marker.
+    figsize : tuple, optional
+        Width, height in inches.
+    s : float or array-like, optional
+        The marker size.
+    c : string, optional
+        The marker color. If set, it overrides the third input of
+        `xy_dict`.
+    alpha : float, optional
+        The alpha blending value, between 0 (transparent) and 1
+        (opaque).
+
+    Returns
+    -------
+    tuple
+        Figure and axes of the 2-D scatter plot.
+    """
+    if figsize is None:
+        figsize = plt.rcParams['figure.figsize']
+    assert isinstance(figsize, (tuple, list)), 'Invalid figure size.'
+    fig = plt.figure(figsize=figsize)
+    ax = plt.axes()
+    keys = list(xy_dict.keys())
+    vals = list(xy_dict.values())
+    if (len(vals) == 3) and not(c):
+        cs = ax.scatter(vals[0], vals[1], s=s, c=vals[2], cmap='viridis')
+        cbar = fig.colorbar(cs)
+        cbar.ax.set_ylabel(keys[2])
+    else:
+        if not(c):
+            c = 'k'
+        cs = ax.scatter(vals[0], vals[1], s=s, c=c, alpha=alpha)
+    ax.set(xlabel=keys[0], ylabel=keys[1])
+    ax.axis('equal')
+    fig.tight_layout()
+    return fig, ax
+
+
+def scatter_3d(xyz_dict, figsize=None, azim=[45], elev=[9], c=None, alpha=1):
+    """3-D scatter plot.
+
+    Parameters
+    ----------
+    xyz_dict : dictionary
+        Keys are label names, values are the corresponding values.
+        First three inputs go on the x-, y-, and z-axis, respectively,
+        while the forth one, if exists, defines the color of each
+        marker.
+    figsize : tuple, optional
+        Width, height in inches.
+    azim : list of floats, optional
+        Azimuthal viewing angle. If there are more than 1 element in
+        the list, the multiple subplots will be generated.
+    elev : list of floats, optional
+        Elevation viewing angle. If there are more than 1 element in
+        the list, the multiple subplots will be generated.
+    c : string, optional
+        The marker color. If set, it overrides the forth input in
+        `xyz_dict`.
+    alpha : float, optional
+        The alpha blending value, between 0 (transparent) and 1
+        (opaque).
+
+    Returns
+    -------
+    tuple
+        Figure and axes of the 2-D scatter plot.
+    """
+    num_figs = len(elev) * len(azim)
+    if num_figs > 4:
+        raise ValueError('The max number of subplots is 4.')
+    if num_figs != 1:
+        figsize = (figsize[0] * num_figs / 2, figsize[1] * num_figs / 2)
+    fig = plt.figure(figsize=figsize)
+    keys = list(xyz_dict.keys())
+    vals = list(xyz_dict.values())
+    for i, (e, a) in enumerate(product(elev, azim)):
+        ax = fig.add_subplot(num_figs, 1, i+1, projection='3d')
+        if (len(vals) == 4) and not(c):
+            cs = ax.scatter(vals[0], vals[1], vals[2], c=vals[3],
+                            cmap='viridis')
+            cbar = fig.colorbar(cs, shrink=0.5, pad=0.1)
+            cbar.ax.set_ylabel(keys[3])
+        else:
+            if not(c):
+                c = 'k'
+            cs = ax.plot(vals[0], vals[1], vals[2], '.', c=c, alpha=alpha)
+        ax.set(xlabel=keys[0], ylabel=keys[1], zlabel=keys[2])
+        ax = set_axes_equal(ax)
+        ax.view_init(elev=e, azim=a)
+    fig.tight_layout()
+    return fig, ax
+
+
+def _minmax_scale(x, _range=(0, 1)):
+    """Min-max scaler.
+
+    Parameters
+    ----------
+    x : numpy.ndarray
+        The data to be scaled.
+    _range : tuple, optional
+        Desired range of transformed data.
+
+    Returns
+    -------
+    numpy.ndarray
+        Scaled data.
+    """
+    scaler = (x - x.min()) / (x.max() - x.min())
+    x_scaled = scaler * (_range[1] - _range[0]) + _range[0]
+    return x_scaled
+
+
+def colormap_from_array(x, cmap='viridis', alpha=None, bytes=False):
+    """Min-max scaler.
+
+    Parameters
+    ----------
+    x : numpy.ndarray
+        The data to convert to a RGB.
+    cmap : string, optional
+        Name of the colormap.
+    alpha : float, optional
+        The alpha blending value, between 0 (transparent) and 1
+        (opaque).
+    bytes : bool, optional
+        If False (default), the returned RGBA values will be floats in
+        the interval [0, 1] otherwise they will be uint8s in the
+        interval [0, 255].
+
+    Returns
+    -------
+    numpy.ndarray
+        An array of RGB values.
+    """
+    from matplotlib import cm
+    x_scaled = _minmax_scale(x)
+    try:
+        cs = eval(f'cm.{cmap}')(x_scaled, alpha, bytes)
+    except Exception as e:
+        print(e, 'Falling to default colormap')
+        cs = cm.viridis(x_scaled, alpha, bytes)
+    finally:
+        if alpha is None:
+            cs = cs[:, :3]
+    return cs
