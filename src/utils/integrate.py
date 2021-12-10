@@ -216,7 +216,7 @@ def elementwise_circquad(points, values, radius, center, degree=9,
     try:
         import quadpy
     except ImportError:
-        raise ImportError('`quadpy` should be installed manually. Try again.')
+        raise ImportError('`quadpy` is not installed.')
     degree = int(degree)
     if degree > 21:
         raise ValueError('Highest integration order is currently 21.')
