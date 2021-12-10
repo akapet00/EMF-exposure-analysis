@@ -39,33 +39,35 @@ def green(xt, yt, zt, xs, ys, zs, f):
     return jnp.exp(-1j * k * R) / R
 
 
+# just-in-time compilation of the Green function
 green = jit(green)
 
 
+# autodiff
 green_grad = jit(vmap(
         grad(green, argnums=(0, 1, 2), holomorphic=True),
         in_axes=(None, None, None, 0, 0, 0, None)))
 
 
 def efield(xt, yt, zt, xs, ys, zs, Is, f):
-    """Return the electric field approximation value in a single point
-    in free space.
+    """Return electric field components for a single point in free
+    space.
 
     Parameters
     ----------
     xt : float
-        x coordinate of the observed point in free space.
+        x-coordinate of the target point.
     yt : float
-        y coordinate of the observed point in free space.
+        y-coordinate of the target point.
     zt : float
-        z coordinate of the observed point in free space.
-    xs : float or numpy.ndarray
-        x coordinates) of the source.
-    xs : float or numpy.ndarray
-        y coordinates of the source.
-    xs : float or numpy.ndarray
-        z coordinates of the source.
-    Is : jax.numpy.ndarray or numpy.ndarray
+        z-coordinate of the target point.
+    xs : array-like
+        x-coordinates of the source.
+    xs : array-like
+        y-coordinates of the source.
+    xs : array-like
+        z-coordinates of the source.
+    Is : array-like
         Complex current distribution along the antenna.
     f : float
         Frequency in GHz.
@@ -73,8 +75,7 @@ def efield(xt, yt, zt, xs, ys, zs, Is, f):
     Returns
     -------
     tuple
-        Values of electric vector field in x, y and z direction for
-        given target point.
+        Electric field x-, y-, and z-component.
     """
     omega = 2 * pi * f
     gamma = 1j * jnp.sqrt(omega ** 2 * mu_0 * eps_0)
@@ -91,24 +92,24 @@ def efield(xt, yt, zt, xs, ys, zs, Is, f):
 
 
 def hfield(xt, yt, zt, xs, ys, zs, Is, f):
-    """Return the magnetic field approximation value in a single point
-    in free space.
+    """Return magnetic field components for a single point in free
+    space.
 
     Parameters
     ----------
     xt : float
-        x coordinate of the observed point in free space.
+        x-coordinate of the target point.
     yt : float
-        y coordinate of the observed point in free space.
+        y-coordinate of the target point.
     zt : float
-        z coordinate of the observed point in free space.
-    xs : float or numpy.ndarray
-        x coordinates) of the source.
-    xs : float or numpy.ndarray
-        y coordinates of the source.
-    xs : float or numpy.ndarray
-        z coordinates of the source.
-    Is : jax.numpy.ndarray or numpy.ndarray
+        z-coordinate of the target point.
+    xs : array-like
+        x-coordinates of the source.
+    xs : array-like
+        y-coordinates of the source.
+    xs : array-like
+        z-coordinates of the source.
+    Is : array-like
         Complex current distribution along the antenna.
     f : float
         Frequency in GHz.
@@ -116,8 +117,7 @@ def hfield(xt, yt, zt, xs, ys, zs, Is, f):
     Returns
     -------
     tuple
-        Values of magnetic vector field in x, y and z direction for
-        given target point.
+        Magnetic field x-, y-, and z-component.
     """
     prefix = 1 / (4 * pi)
     _, g_y, g_z = green_grad(xt + 0j, yt + 0j, zt + 0j, xs, ys, zs, f)
@@ -128,33 +128,34 @@ def hfield(xt, yt, zt, xs, ys, zs, Is, f):
 
 
 def poynting(xt, yt, zt, xs, ys, zs, f, Is, Is_x=None):
-    """Return the magnetic field approximation value in a single point
-    in free space.
+    """Return the Poynting vector components for a single point in free
+    space.
 
     Parameters
     ----------
     xt : float
-        x coordinate of the observed point(s) in free space.
+        x-coordinate of the target point.
     yt : float
-        y coordinate of the observed point(s) in free space.
+        y-coordinate of the target point.
     zt : float
-        z coordinate of the observed point(s) in free space.
-    xs : float or numpy.ndarray
-        x coordinates of the source.
-    xs : float or numpy.ndarray
-        y coordinates of the source.
-    xs : float or numpy.ndarray
-        z coordinates of the source.
+        z-coordinate of the target point.
+    xs : array-like
+        x-coordinates of the source.
+    xs : array-like
+        y-coordinates of the source.
+    xs : array-like
+        z-coordinates of the source.
     f : float
         Frequency in GHz.
-    Is : numpy.ndarray or jax.numpy.ndarray
-        Complex current distribution over the antenna.
+    Is : array-like
+        Complex current distribution along the antenna.
+    Is_x : array-like, optional
+        First derivative of a current distribution.
 
     Returns
     -------
     tuple
-        Values of Poynting vector in x, y and z direction for given
-        target point.
+        The Poynting vector x-, y-, and z-component.
     """
     omega = 2 * pi * f
     gamma = 1j * jnp.sqrt(omega ** 2 * mu_0 * eps_0)
@@ -181,52 +182,59 @@ def poynting(xt, yt, zt, xs, ys, zs, f, Is, Is_x=None):
     return Sx, Sy, Sz
 
 
-def poynting_parallel(xt, yt, zt, xs, ys, zs, f, Is):
-    """Return the magnetic field approximation value in a single point
-    in free space.
+def poynting_parallel(xt, yt, zt, xs, ys, zs, f, Is, Is_x=None):
+    """Return the Poynting vector components for a single point in free
+    space.
 
-    Note: Work in progress!
+    Note: work in progress. Not ready for use in real applications
+    because of memory-related issues.
 
     Parameters
     ----------
-    xt : float or jnp.ndarray
-        x coordinate(s) of the observed point(s) in free space.
-    yt : float or jnp.ndarray
-        y coordinate(s) of the observed point(s) in free space.
-    zt : float or jnp.ndarray
-        z coordinate(s) of the observed point(s) in free space.
-    xs : float or numpy.ndarray
-        x coordinates of the source.
-    xs : float or numpy.ndarray
-        y coordinates of the source.
-    xs : float or numpy.ndarray
-        z coordinates of the source.
+    xt : float
+        x-coordinate of the target point.
+    yt : float
+        y-coordinate of the target point.
+    zt : float
+        z-coordinate of the target point.
+    xs : array-like
+        x-coordinates of the source.
+    xs : array-like
+        y-coordinates of the source.
+    xs : array-like
+        z-coordinates of the source.
     f : float
         Frequency in GHz.
-    Is : numpy.ndarray or jax.numpy.ndarray
-        Complex current distribution over the antenna.
+    Is : array-like
+        Complex current distribution along the antenna.
+    Is_x : array-like, optional
+        First derivative of a current distribution.
 
     Returns
     -------
     tuple
-        Values of Poynting vector in x, y and z direction for given
-        target point.
+        The Poynting vector x-, y-, and z-components.
     """
     omega = 2 * pi * f
     gamma = 1j * jnp.sqrt(omega ** 2 * mu_0 * eps_0)
-    dx = xs[1] - xs[0]
-    Is_x = jnp.asarray(holoborodko(Is, dx))
+    if Is_x is None:
+        dx = xs[1] - xs[0]
+        Is_x = jnp.asarray(holoborodko(Is, dx))
 
     g_vmap_z = vmap(green, in_axes=(None, None, 0, None, None, None, None))
     g_vmap_yz = vmap(g_vmap_z, in_axes=(None, 0, None, None, None, None, None))
-    g_vmap_xyz = vmap(g_vmap_yz, in_axes=(0, None, None, None, None, None, None))
+    g_vmap_xyz = vmap(g_vmap_yz, in_axes=(0, None, None, None, None, None,
+                                          None))
     g = jnp.stack(
         g_vmap_xyz(xt, yt, zt, xs, ys, zs, f)
         ).reshape(xt.size * yt.size * zt.size, xs.size)
 
-    g_grad_vmap_z = vmap(green_grad, in_axes=(None, None, 0, None, None, None, None))
-    g_grad_vmap_yz = vmap(g_grad_vmap_z, in_axes=(None, 0, None, None, None, None, None))
-    g_grad_vmap_xyz = vmap(g_grad_vmap_yz, in_axes=(0, None, None, None, None, None, None))
+    g_grad_vmap_z = vmap(green_grad, in_axes=(None, None, 0, None, None, None,
+                                              None))
+    g_grad_vmap_yz = vmap(g_grad_vmap_z, in_axes=(None, 0, None, None, None,
+                                                  None, None))
+    g_grad_vmap_xyz = vmap(g_grad_vmap_yz, in_axes=(0, None, None, None, None,
+                                                    None, None))
     g_grad = jnp.stack(
         g_grad_vmap_xyz(xt, yt, zt, xs, ys, zs, f), axis=3
         ).reshape(xt.size * yt.size * zt.size, xs.size)
