@@ -7,48 +7,44 @@ from scipy.special import erfc
 from .constants import pi
 
 
-def init_temp(z, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c, T_f, Q_m):
-    """Return the temperature distribution by solving 1-D bioheat
+def init_temp(z, k, rho_b, C_b, m_b, h_0, T_a, T_c, T_f, Q_m):
+    """Return the temperature distribution by solving the 1-D bioheat
     equation analytically over tissue depth. This can serve as the
     initial temperature distribution before solving bioheat equation
     numerically via the pseudo-spectral method.
 
     Ref: Deng, ZH; Liu, J. Analytical study on bioheat transfer
     problems with spatial or transient heating on skin surface or
-    inside biological bodies, J Biomech Eng. Dec 2002, 124(6): 638-649,
+    inside biological bodies, J Biomech Eng. 2002, 124(6): 638-649,
     DOI: 10.1115/1.1516810
 
     Parameters
     ----------
     z : numpy.ndarray
-        one dimensional solution domain
+        1-D space representing the solution domain.
     k : float
-        thermal conductivity of the tissue
-    rho : float
-        tissue density
-    C : float
-        heat capacity of the tissue
+        Thermal conductivity of the tissue.
     rho_b : float
-        blood density
+        Blood density.
     C_b : float
-        blood heat capacity
+        Blood heat capacity.
     m_b : float
-        blood perfusion
+        Volumetric blood perfusion.
     h_0 : float
-        heat convection coefficient between the skin surface and air
+        Heat convection coefficient between a skin surface and the air.
     T_a : float
-        arterial temperature
+        Arterial temperature.
     T_c : float
-        body core temperature
+        Body core temperature.
     T_f : float
-        surrounding air temperature
+        Surrounding air temperature.
     Q_m : float
-        metabolic heat generation
+        Metabolic heat generation.
 
     Returns
     -------
     numpy.ndarray
-        Initial temperature distribution prior to radiation.
+        Initial temperature distribution prior to exposure.
     """
     pen_depth = np.max(z)
     w_b = m_b * rho_b * C_b
@@ -62,67 +58,67 @@ def init_temp(z, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c, T_f, Q_m):
     return T_a + Q_m / w_b + numer / denom
 
 
-def delta_temp_analytic(t, pen_depth, k, rho, C, I0, T_tr):
-    """Return the closed-form solution of the 1-D BHTE with no blood
-    perfusion considered over given simulation period, `t`.
+def delta_temp_analytic(t, pen_depth, k, rho, C, IPD, T_tr):
+    """Return the closed-form solution of the 1-D bioheat equation with
+    no blood perfusion considered over given simulation period, `t`.
 
     Ref: Foster, KR; Ziskin, MC; Balzano, Q. Thermal response of human
-    skin to microwave energy: A critical review. Health Phys. Dec 2002,
+    skin to microwave energy: A critical review. Health Phys. 2002,
     111(6): 528-541, DOI: 10.1097/HP.0000000000000571
 
     Parameters
     ----------
-    sim_time : numpy.ndarray
-        Simulation time
+    t : numpy.ndarray
+        Simulation time.
     pen_depth : float
-        energy penetration depth
+        Energy penetration depth.
     k : float
-        thermal conductivity of the tissue
+        Thermal conductivity of the tissue.
     rho : float
-        tissue density
+        Tissue density.
     C : float
-        heat capacity of the tissue
-    I0 : float
-        incident power density of the tissue surface
+        Heat capacity of the tissue.
+    IPD : float
+        Incident power density of the tissue surface
     T_tr : float
-        transmission coefficient into the tisse
+        Transmission coefficient into the tisse.
 
     Returns
     -------
     numpy.ndarray
-        Rise in temperature over exposure time.
+        Temperature rise during the time of exposure.
     """
-    C_1 = 2 * I0 * T_tr / np.sqrt(pi * k * rho * C)
-    C_2 = I0 * T_tr * pen_depth / k
+    C_1 = 2 * IPD * T_tr / np.sqrt(pi * k * rho * C)
+    C_2 = IPD * T_tr * pen_depth / k
     tau = 4 / pi * (C_2 / C_1) ** 2
     return (C_1 * np.sqrt(t)
             - C_2 * (1 - np.exp(t / tau) * erfc(np.sqrt(t / tau))))
 
 
-def delta_temp(t, N, pen_depth, k, rho, C, m_b, I0, T_tr):
-    """Numerical solution to 1-D Pennes' bioheat transfer equation by
-    using Fast Fourier Transform on spatial coordinate.
+def delta_temp_1d(t, N, pen_depth, k, rho, C, m_b, IPD, T_tr):
+    """Numerical solution of the 1-D bioheat equation by using the FFT
+    on a spatial coordinate.
 
     Parameters
     ----------
     t : numpy.ndarray
-        simulation time; exposure time in seconds
+        Simulation time.
     N : int
-        number of collocation points
+        Number of collocation points.
     pen_depth : float
-        energy penetration depth
+        Energy penetration depth.
     k : float
-        thermal conductivity of the tissue
+        Thermal conductivity of the tissue-
     rho : float
-        tissue density
+        Tissue density.
     C : float
-        heat capacity of the tissue
+        Heat capacity of the tissue.
     m_b : float
-        blood perfusion
-    I0 : float
-        incident power density of the tissue surface
+        Volumetric blood perfusion.
+    IPD : float
+        Incident power density to the tissue surface.
     T_tr : float
-        transmission coefficient into the tisse
+        Transmission coefficient into the tisse.
 
     Returns
     -------
@@ -132,7 +128,7 @@ def delta_temp(t, N, pen_depth, k, rho, C, m_b, I0, T_tr):
     dx = pen_depth / N
     x = np.linspace(0, pen_depth, N)
     kappa = 2 * pi * np.fft.fftfreq(N, d=dx)
-    SAR = I0 * T_tr / (rho * pen_depth) * np.exp(-x / pen_depth)
+    SAR = IPD * T_tr / (rho * pen_depth) * np.exp(-x / pen_depth)
     SAR_fft = np.fft.fft(SAR)
 
     def rhs(T_fft_ri, t, kappa, k, rho, C, m_b, SAR_fft):
@@ -144,10 +140,10 @@ def delta_temp(t, N, pen_depth, k, rho, C, m_b, I0, T_tr):
             )
         return np.concatenate((d_T_fft.real, d_T_fft.imag)).astype(np.float64)
 
-    # initial conditions -- prior to radiofrequency exposure
+    # initial conditions - prior to radiofrequency exposure
     T0 = np.zeros_like(x)
     T0_fft = np.fft.fft(T0)
-    # recasting complex numbers to an array for easier handling in SciPy
+    # recasting complex numbers to an array for easier handling in `scipy`
     T0_fft_ri = np.concatenate((T0_fft.real, T0_fft.imag))
     T_fft_ri = odeint(rhs, T0_fft_ri, t, args=(kappa, k, rho, C, m_b, SAR_fft))
     T_fft = T_fft_ri[:, :N] + (1j) * T_fft_ri[:, N:]
@@ -157,51 +153,51 @@ def delta_temp(t, N, pen_depth, k, rho, C, m_b, I0, T_tr):
     return deltaT.real
 
 
-def temp3(t, N, area, pen_depth, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c,
-          T_f, Q_m, SAR):
-    """Numerical solution to 1-D Pennes' bioheat transfer equation by
-    using Fast Fourier Transform on spatial coordinates.
+def temp_3d(t, N, area, pen_depth, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c,
+            T_f, Q_m, SAR):
+    """Numerical solution of the 1-D bioheat equation by using the FFT
+    on spatial coordinates.
 
     Parameters
     ----------
     t : numpy.ndarray
-        simulation time; exposure time in seconds
+        Simulation time.
     N : tuple
-        collocation points in x, y and z direction
+        Number of collocation points in x-, y- and z-direction.
     area : tuple
-        length and width of the heated surface area
+        Length and width of the exposure surface of a human tissue.
     pen_depth : float
-        energy penetration depth
+        Energy penetration depth.
     k : float
-        thermal conductivity of the tissue
+        Thermal conductivity of a tissue.
     rho : float
-        tissue density
+        Tissue density.
     C : float
-        heat capacity of the tissue
+        Tissue heat capacity.
     rho_b : float
-        blood density
+        Blood density.
     C_b : float
-        blood heat capacity
+        Blood heat capacity.
     m_b : float
-        blood perfusion
+        Volumetric blood perfusion.
     h_0 : float
-        heat convection coefficient between the skin surface and air
+        Heat convection coefficient between the skin surface and air.
     T_a : float
-        arterial temperature
+        Arterial temperature.
     T_c : float
-        body core temperature
+        Body core temperature.
     T_f : float
-        surrounding air temperature
+        Surrounding air temperature.
     Q_m : float
-        metabolic heat generation
+        Metabolic heat generation.
     SAR : numpy.ndarray
-        3-D array of shape (`N[0]`, `N[1]`, `N[2]`), each value
-        corresponds to (x, y, z) SAR value
+        3-D array of shape (`N[0]`, `N[1]`, `N[2]`) of specific
+        absorption rate values.
 
     Returns
     -------
     numpy.ndarray
-        Temperature distribution in time for each collocation point.
+        Temperature distribution in time and space.
     """
     Nx, Ny, Nz = N
     X, Y = area
@@ -234,7 +230,7 @@ def temp3(t, N, area, pen_depth, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c,
                 + SAR * rho) / (rho * C)
         return dTdt.real.ravel()
 
-    _T0 = init_temp(z, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c, T_f, Q_m)
+    _T0 = init_temp(z, k, rho_b, C_b, m_b, h_0, T_a, T_c, T_f, Q_m)
     T0 = np.ones((Nx, Ny, Nz)) * _T0
     T0 = T0.ravel()
     T = odeint(rhs, T0, t)
