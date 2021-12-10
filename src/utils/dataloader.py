@@ -19,7 +19,7 @@ def load_tissue_diel_properties(tissue, f):
     Ref: Hasgall, PA; Di Gennaro, F; Baumgartner, C; Neufeld, E; Lloyd,
     B; Gosselin, MC; Payne, D; Klingenböck, A; Kuster, N. IT'IS
     Database for thermal and electromagnetic parameters of biological
-    tissues, Version 4.0, May 15, 2018, DOI: 10.13099/VIP21000-04-0
+    tissues, Version 4.0, 2018, DOI: 10.13099/VIP21000-04-0
 
     Parameters
     ----------
@@ -31,8 +31,8 @@ def load_tissue_diel_properties(tissue, f):
     Returns
     -------
     tuple
-        tuple of 4 float values which represent conductivity, relative
-        permitivity, loss tangent and penetration depth, respectively
+        Conductivity, relative permitivity, loss tangent and
+        penetration depth.
     """
     if tissue not in SUPPORTED_TISSUES:
         raise ValueError(f'Unsupported tissue. Choose {SUPPORTED_TISSUES}.')
@@ -48,13 +48,13 @@ def load_tissue_diel_properties(tissue, f):
 
 
 def load_antenna_el_properties(f):
-    """Return the current distribution over the thin wire half-dipole
-    antenna. The data are obtained by solving the Pocklington integro-
-    differential equation by using the indirect-boundary element
-    method.
+    """Return the current distribution over a thin wire, half-wave
+    dipole antenna. The data are obtained by solving the Pocklington
+    integro-differential equation by using the indirect-boundary
+    element method.
 
     Ref: Poljak, D. Advanced modeling in computational electromagnetic
-    compatibility, Wiley-Interscience; 1st edition (March 16, 2007)
+    compatibility, Wiley-Interscience, 1st edition, 2007
 
     Parameters
     ----------
@@ -81,17 +81,17 @@ def load_antenna_el_properties(f):
 
 def load_sphere_coords(N):
     """Return the coordinates of a sphere representing a homogenous
-    head model with diameter of 0.09 m.
+    head model with diameter that equals to 18 cm.
 
     Parameters
     ----------
     N : int
-        number of finite elements of a mesh
+        Number of finite elements.
 
     Returns
     -------
     pandas.DataFrame
-        x, y and z coordinates.
+        x-, y- and z-coordinates.
     """
     try:
         fname = f'sphere_coord_n{N}.mat'
@@ -107,7 +107,7 @@ def load_sphere_coords(N):
 
 
 def load_head_coords():
-    """Return the coordinates of a head model.
+    """Return the coordinates of the head model.
 
     Parameters
     ----------
@@ -116,7 +116,7 @@ def load_head_coords():
     Returns
     -------
     pandas.DataFrame
-        x, y and z coordinates.
+        x-, y- and z-coordinates.
     """
     try:
         fname = 'head_ijnme_simpl.csv'
@@ -134,20 +134,21 @@ def load_head_coords():
 
 def load_ear_data(mode, f):
     """Return the coordinates for the ear model, where each point in
-    space has E and H field values already computed given mode,
-    frequency and distance from the source of radiation.
+    space has E and H field values precomputed for a given mode and
+    a frequency of plane wave.
 
     Parameters
     ----------
     mode : str
-        Either TE (transversal electric) or TM (transversal magnetic).
+        Either `TE` (transversal electric) or `TM` (transversal
+        magnetic).
     f : float
         Frequency in GHz.
 
     Returns
     -------
     pandas.DataFrame
-        x, y and z coordinates with associated field values.
+        x-, y- and z-coordinates with associated field components.
     """
     mode = str(mode).upper()
     f = int(f)

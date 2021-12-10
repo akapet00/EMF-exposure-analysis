@@ -6,9 +6,9 @@ from scipy import interpolate
 from scipy.special import roots_legendre
 
 
-def quad(func, a, b, args=(), leggauss_deg=3):
-    """Return the the integral of a given function using the
-    Gauss-Legendre quadrature scheme.
+def quad(func, a, b, args=(), degree=3):
+    """Return the integral of a given function solved by means of the
+    Gauss-Legendre quadrature.
 
     Parameters
     ----------
@@ -20,7 +20,7 @@ def quad(func, a, b, args=(), leggauss_deg=3):
         Right boundary of the integration domain.
     args : tuple, optional
         Additional arguments for `func`.
-    leggauss_deg : int, optional
+    degree : int, optional
         Degree of the Gauss-Legendre quadrature.
 
     Returns
@@ -30,16 +30,16 @@ def quad(func, a, b, args=(), leggauss_deg=3):
     """
     if not callable(func):
         raise ValueError('`func` must be callable')
-    points, w = roots_legendre(leggauss_deg)
+    points, w = roots_legendre(degree)
     scaler = (b - a) / 2
     x = scaler * (points + 1.) + a
-    I_num = (scaler * w) @ func(x, *args)
-    return I_num
+    I_approx = (scaler * w) @ func(x, *args)
+    return I_approx
 
 
-def dblquad(func, bbox, args=(), leggauss_deg=9):
-    """Return the the integral of a given 2-D function, `f(x, y)`,
-    using the Gauss-Legendre quadrature scheme.
+def dblquad(func, bbox, args=(), degree=9):
+    """Return the integral of a given 2-D function, `f(x, y)`, solution
+    of which is carried by using the Gauss-Legendre quadrature in 2-D.
 
     Parameters
     ----------
@@ -49,7 +49,7 @@ def dblquad(func, bbox, args=(), leggauss_deg=9):
         Integration domain [min(x), max(x), min(y), max(y)].
     args : tuple, optional
         Additional arguments for `func`.
-    leggauss_deg : int, optional
+    degree : int, optional
         Degree of the Gauss-Legendre quadrature.
 
     Returns
@@ -59,20 +59,19 @@ def dblquad(func, bbox, args=(), leggauss_deg=9):
     """
     if not callable(func):
         raise ValueError('`func` must be callable')
-    points, w = roots_legendre(leggauss_deg)
+    points, w = roots_legendre(degree)
     x_a, x_b, y_a, y_b = bbox
     x_scaler = (x_b - x_a) / 2
     y_scaler = (y_b - y_a) / 2
     x_scaled = x_scaler * (points + 1.) + x_a
     y_scaled = y_scaler * (points + 1.) + y_a
     X, Y = np.meshgrid(x_scaled, y_scaled)
-    I_num = (x_scaler * w) @ func(X, Y, *args) @ (y_scaler * w)
-    return I_num
+    I_approx = (x_scaler * w) @ func(X, Y, *args) @ (y_scaler * w)
+    return I_approx
 
 
-def elementwise_quad(points, values, leggauss_deg=3, interp_func=None,
-                     **kwargs):
-    """Return the approximate value of the integral of a given sampled
+def elementwise_quad(points, values, degree=3, interp_func=None, **kwargs):
+    """Return the approximate value of the integral for given sampled
     data using the Gauss-Legendre quadrature.
 
     Parameters
@@ -81,17 +80,18 @@ def elementwise_quad(points, values, leggauss_deg=3, interp_func=None,
         Integration domain.
     values : numpy.ndarray
         Sampled integrand.
-    leggauss_deg : int, optional
+    degree : int, optional
         Degree of the Gauss-Legendre quadrature.
     interp_func : callable, optional
-        Interpolation function.
+        Interpolation function. The default is
+        `scipy.interpolate.interp1d`.
     kwargs : dict, optional
-        Additional keyword arguments for interpolation function
+        Additional keyword arguments for the interpolation function.
 
     Returns
     -------
     float
-        Approximation of the integral of a given function.
+        Approximation of the integral for given data.
     """
     if not isinstance(values, (collections.Sequence, jnp.ndarray, np.ndarray)):
         raise Exception('`y` must be array-like.')
@@ -104,23 +104,22 @@ def elementwise_quad(points, values, leggauss_deg=3, interp_func=None,
         func = interpolate.interp1d(points, values, **kwargs)
     else:
         func = interp_func(points, values, **kwargs)
-    return quad(func, a, b, leggauss_deg=leggauss_deg)
+    return quad(func, a, b, degree=degree)
 
 
-def elementwise_dblquad(points, values, leggaus_deg=9, interp_func=None,
-                        **kwargs):
-    """Return the approximate value of the integral of a given sampled
-    2-D data using the Gauss-Legendre quadrature.
+def elementwise_dblquad(points, values, degree=9, interp_func=None, **kwargs):
+    """Return the approximate value of the integral for sampled 2-D
+    data by using the Gauss-Legendre quadrature in 2-D.
 
     Parameters
     ----------
     points : numpy.ndarray
-        Data point coordinates of shape (n, D).
+        Data points of shape (n, 2), where n is the number of points.
     values : numpy.ndarray
         Sampled integrand function values of shape (n, ). If the data
-        is sampled over a grid data, it could also be of shape (m, m),
-        where m corresponds to the number of data points coordinates.
-    leggauss_deg : int, optional
+        is sampled over a grid it could also be of shape (m, m), where
+        m corresponds to the number of data points coordinates.
+    degree : int, optional
         Degree of the Gauss-Legendre quadrature.
     interp_func : callable, optional
         Interpolation function. If not set radial basis function
@@ -131,7 +130,7 @@ def elementwise_dblquad(points, values, leggaus_deg=9, interp_func=None,
     Returns
     -------
     float
-        Approximation of the integral of a given function.
+        Approximation of the integral for givend 2-D data.
     """
     if not isinstance(values, (collections.Sequence, jnp.ndarray, np.ndarray)):
         raise Exception('`values` must be array-like.')
@@ -144,13 +143,12 @@ def elementwise_dblquad(points, values, leggaus_deg=9, interp_func=None,
         func = interpolate.Rbf(points[:, 0], points[:, 1], values, **kwargs)
     else:
         func = interp_func(points, values, **kwargs)
-    return dblquad(func, bbox, leggauss_deg=leggaus_deg)
+    return dblquad(func, bbox, degree=degree)
 
 
-def elementwise_rectquad(x, y, values, leggauss_deg=9, **kwargs):
-    """Return the approximate value of the integral of a given sampled
-    2-D data over a rectangular grid using the Gauss-Legendre
-    quadrature.
+def elementwise_rectquad(x, y, values, **kwargs):
+    """Return the approximate value of the integral for given sampled
+    2-D data over a rectangular grid.
 
     Parameters
     ----------
@@ -159,9 +157,7 @@ def elementwise_rectquad(x, y, values, leggauss_deg=9, **kwargs):
     y : numpy.ndarray
         y-axis strictly ascending coordinates.
     values: numpy.ndarray
-        Sampled integrand function of shape (x.size, y.size)
-    leggauss_deg : int, optional
-        Degree of the Gauss-Legendre quadrature.
+        Sampled integrand function of shape (`x.size`, `y.size`).
     kwargs : dict, optional
         Additional keyword arguments for
         `scipy.interpolate.RectBivariateSpline` function.
@@ -184,18 +180,16 @@ def elementwise_rectquad(x, y, values, leggauss_deg=9, **kwargs):
 
 def elementwise_circquad(points, values, radius, center, degree=9,
                          interp_func=None, **kwargs):
-    """Return the approximate value of the integral of a given sampled
+    """Return the approximate value of the integral for given sampled
     2-D data over a disk by using the appropriate quadrature scheme for
     a given degree of integration.
 
     Parameters
     ----------
     points : numpy.ndarray
-        Data point coordinates of shape (n, D).
+        Data point coordinates of shape (n, 2) on a disk.
     values : numpy.ndarray
-        Sampled integrand function values of shape (n, ). If the data
-        is sampled over a grid data, it could also be of shape (m, m),
-        where m corresponds to the number of data points coordinates.
+        Sampled integrand function values of shape (n, ).
     radius : float
         Radius of the integration domain.
     center : list or numpy.ndarray
@@ -203,7 +197,7 @@ def elementwise_circquad(points, values, radius, center, degree=9,
     degree : int, optional
         Degree of the quadrature. Should be less or equal to 21.
     interp_func : callable, optional
-        Interpolation function. If not set radial basis function
+        Interpolation function. If not set, radial basis function
         interpolation is used.
     kwargs : dict, optional
         Additional keyword arguments for the interpolation function.
@@ -211,7 +205,7 @@ def elementwise_circquad(points, values, radius, center, degree=9,
     Returns
     -------
     float
-        Approximation of the integral of a given function.
+        Approximation of the integral.
     """
     try:
         import quadpy
@@ -219,7 +213,7 @@ def elementwise_circquad(points, values, radius, center, degree=9,
         raise ImportError('`quadpy` is not installed.')
     degree = int(degree)
     if degree > 21:
-        raise ValueError('Highest integration order is currently 21.')
+        raise ValueError('Highest integration order is 21.')
     if not isinstance(values, (collections.Sequence, jnp.ndarray, np.ndarray)):
         raise Exception('`values` must be array-like.')
     points = np.atleast_2d(points)

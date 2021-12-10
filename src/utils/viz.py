@@ -6,7 +6,7 @@ import numpy as np
 
 def fig_config(latex=False, nrows=1, ncols=1, scaler=1.0, text_size=16,
                line_width=3, marker_size=5):
-    """Configure matplotlib parameters for better visualization style.
+    """Configure visualization parameters.
 
     Parameters
     ----------
@@ -49,6 +49,24 @@ def fig_config(latex=False, nrows=1, ncols=1, scaler=1.0, text_size=16,
     })
 
 
+def set_colorblind():
+    """Colorblind coloring.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    None
+    """
+    try:
+        import seaborn as sns
+    except ImportError:
+        raise ImportError('`seaborn` is not installed.')
+    sns.set(style='ticks', palette='colorblind')
+
+
 def fig_config_reset():
     """Recover matplotlib default parameters.
 
@@ -68,17 +86,17 @@ def set_axes_equal(ax):
 
     Note: This function is implemented as in:
     https://stackoverflow.com/a/31364297/15005103 because there is no
-    support setting that would enable ``ax.axis('equal')`` in 3-D.
+    support setting that would enable `ax.axis('equal')` in 3-D.
 
     Parameters
     ----------
     ax : matplotlib.axes._subplots.Axes3DSubplot
-        Axes with 'auto' scale settings.
+        3-D axes subplot with scale settings set to `auto`.
 
     Returns
     -------
     matplotlib.axes._subplots.Axes3DSubplot
-        Axes as if the scale settings were defined as 'equal'.
+        Axes as if the scale settings were defined as `equal`.
     """
     x_limits = ax.get_xlim3d()
     y_limits = ax.get_ylim3d()
@@ -100,48 +118,59 @@ def set_axes_equal(ax):
     return ax
 
 
-def save_fig(fig, fname, formats=['pdf']):
-    """Save the current figure.
+def _minmax_scale(x, _range=(0, 1)):
+    """Min-max scaler.
 
     Parameters
     ----------
-    fig : matplotlib.figure.Figure
-        Figure to be saved.
-    fname : str or path-like or binary file-like
-        A path, or a Python file-like objec without the format
-        extension - it will automatically be added depending on the
-        `formats` list.
-    formats : list, optional
-        The file formats in a list. Figure will be saved in pdf format
-        by default.
+    x : numpy.ndarray
+        The data to be scaled.
+    _range : tuple, optional
+        Desired range of transformed data.
 
     Returns
     -------
-    None
+    numpy.ndarray
+        Scaled data.
     """
-    for format in formats:
-        fname = f'{fname}.{format}'
-        fig.savefig(fname, dpi=300, facecolor='w', edgecolor='w',
-                    orientation='portrait', format=format, transparent=True,
-                    bbox_inches='tight', pad_inches=0.1)
+    scaler = (x - x.min()) / (x.max() - x.min())
+    x_scaled = scaler * (_range[1] - _range[0]) + _range[0]
+    return x_scaled
 
 
-def set_colorblind():
-    """Colorblind coloring.
+def colormap_from_array(x, cmap='viridis', alpha=None, bytes=False):
+    """Min-max scaler.
 
     Parameters
     ----------
-    None
+    x : numpy.ndarray
+        The data with values to be converted to RGB values.
+    cmap : string, optional
+        Name of the colormap.
+    alpha : float, optional
+        The alpha blending value, between 0 (transparent) and 1
+        (opaque).
+    bytes : bool, optional
+        If False (default), the returned RGB values will be floats in
+        the interval [0, 1] otherwise they will be integers in the
+        interval [0, 255].
 
     Returns
     -------
-    None
+    numpy.ndarray
+        RGB values.
     """
+    from matplotlib import cm
+    x_scaled = _minmax_scale(x)
     try:
-        import seaborn as sns
-    except ImportError:
-        raise ImportError('`seaborn` is not installed.')
-    sns.set(style='ticks', palette='colorblind')
+        cs = eval(f'cm.{cmap}')(x_scaled, alpha, bytes)
+    except Exception as e:
+        print(e, 'Falling to default colormap')
+        cs = cm.viridis(x_scaled, alpha, bytes)
+    finally:
+        if alpha is None:
+            cs = cs[:, :3]
+    return cs
 
 
 def scatter_2d(xy_dict, figsize=None, s=20, c=None, alpha=1):
@@ -155,7 +184,7 @@ def scatter_2d(xy_dict, figsize=None, s=20, c=None, alpha=1):
         y-axis, and the third one, if exists, defines the color of each
         marker.
     figsize : tuple, optional
-        Width, height in inches.
+        Width and height in inches.
     s : float or array-like, optional
         The marker size.
     c : string, optional
@@ -202,7 +231,7 @@ def scatter_3d(xyz_dict, figsize=None, azim=[45], elev=[9], c=None, alpha=1):
         while the forth one, if exists, defines the color of each
         marker.
     figsize : tuple, optional
-        Width, height in inches.
+        Width and height in inches.
     azim : list of floats, optional
         Azimuthal viewing angle. If there are more than 1 element in
         the list, the multiple subplots will be generated.
@@ -219,11 +248,13 @@ def scatter_3d(xyz_dict, figsize=None, azim=[45], elev=[9], c=None, alpha=1):
     Returns
     -------
     tuple
-        Figure and axes of the 2-D scatter plot.
+        Figure and axes of the 3-D scatter plot.
     """
     num_figs = len(elev) * len(azim)
     if num_figs > 4:
         raise ValueError('The max number of subplots is 4.')
+    if figsize is None:
+        figsize = plt.rcParams['figure.figsize']
     if num_figs != 1:
         figsize = (figsize[0] * num_figs / 2, figsize[1] * num_figs / 2)
     fig = plt.figure(figsize=figsize)
@@ -247,56 +278,26 @@ def scatter_3d(xyz_dict, figsize=None, azim=[45], elev=[9], c=None, alpha=1):
     return fig, ax
 
 
-def _minmax_scale(x, _range=(0, 1)):
-    """Min-max scaler.
+def save_fig(fig, fname, formats=['pdf']):
+    """Save the current figure.
 
     Parameters
     ----------
-    x : numpy.ndarray
-        The data to be scaled.
-    _range : tuple, optional
-        Desired range of transformed data.
+    fig : matplotlib.figure.Figure
+        Figure to be saved.
+    fname : str or path-like or binary file-like
+        A path, or a Python file-like object without the format
+        extension - it will automatically be added depending on the
+        `formats` list.
+    formats : list, optional
+        The file format(s). Figure will be saved in pdf by default.
 
     Returns
     -------
-    numpy.ndarray
-        Scaled data.
+    None
     """
-    scaler = (x - x.min()) / (x.max() - x.min())
-    x_scaled = scaler * (_range[1] - _range[0]) + _range[0]
-    return x_scaled
-
-
-def colormap_from_array(x, cmap='viridis', alpha=None, bytes=False):
-    """Min-max scaler.
-
-    Parameters
-    ----------
-    x : numpy.ndarray
-        The data to convert to a RGB.
-    cmap : string, optional
-        Name of the colormap.
-    alpha : float, optional
-        The alpha blending value, between 0 (transparent) and 1
-        (opaque).
-    bytes : bool, optional
-        If False (default), the returned RGBA values will be floats in
-        the interval [0, 1] otherwise they will be uint8s in the
-        interval [0, 255].
-
-    Returns
-    -------
-    numpy.ndarray
-        An array of RGB values.
-    """
-    from matplotlib import cm
-    x_scaled = _minmax_scale(x)
-    try:
-        cs = eval(f'cm.{cmap}')(x_scaled, alpha, bytes)
-    except Exception as e:
-        print(e, 'Falling to default colormap')
-        cs = cm.viridis(x_scaled, alpha, bytes)
-    finally:
-        if alpha is None:
-            cs = cs[:, :3]
-    return cs
+    for format in formats:
+        fname = f'{fname}.{format}'
+        fig.savefig(fname, dpi=300, facecolor='w', edgecolor='w',
+                    orientation='portrait', format=format, transparent=True,
+                    bbox_inches='tight', pad_inches=0.1)

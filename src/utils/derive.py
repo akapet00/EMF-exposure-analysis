@@ -3,12 +3,12 @@ from scipy.special import binom
 
 
 def holoborodko(y, dx=1, dtype='float64'):
-    """Return the 1st order numerical difference on a sampled data. If
-    `dx` is not given, it is assumed to be 1.
+    """Return the first order numerical differentiation of sampled
+    data.
 
-    This function is to be used when noise is present in the data.
-    Filter length of size 5 is used in this implementation.
-    For more details check:
+    Note: This function is to be used when the noise is present in the
+    data. Filter length of size 5 is used in this implementation. For
+    more details visit:
     http://www.holoborodko.com/pavel/numerical-methods/numerical-derivative/smooth-low-noise-differentiators/
 
     Parameters
@@ -16,7 +16,7 @@ def holoborodko(y, dx=1, dtype='float64'):
     y : numpy.ndarray
         Data to derive w.r.t. a single variable.
     dx : float, optional
-        Elementwise distance.
+        Elementwise distance. If not given, it is set to 1.
     dtype : data-type, optional
         Desired output data-type for the array, e.g, `int8`.
 
@@ -28,8 +28,9 @@ def holoborodko(y, dx=1, dtype='float64'):
     N = 5
     M = (N-1) // 2
     m = (N - 3) // 2
-    ck = [(1 / 2 ** (2 * m + 1) * (binom(2 * m, m - k + 1)
-           - binom(2 * m, m - k - 1))) for k in range(1, M + 1)]
+    ck = [(1 / 2 ** (2 * m + 1)
+          * (binom(2 * m, m - k + 1) - binom(2 * m, m - k - 1)))
+          for k in range(1, M + 1)]
     if np.iscomplex(y).any():
         dtype = 'complex128'
     dydx = np.empty((y.size, ), dtype=dtype)
