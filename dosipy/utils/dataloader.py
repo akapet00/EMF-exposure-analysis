@@ -132,7 +132,7 @@ def load_head_coords():
     """
     try:
         dataset_name = os.path.join('target',
-                                    'spherical-head',
+                                    'realistic-head',
                                     'coords.csv')
         full_path = os.path.join(os.path.dirname(__file__),
                                  os.pardir, 'data', 'datasets',
