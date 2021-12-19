@@ -12,8 +12,6 @@ Date: May 15th, 2021
 """
 
 import os
-if os.getcwd().split("/")[-1] == "simulations":
-    os.chdir(os.pardir)
 import datetime
 import time
 import itertools
@@ -27,8 +25,8 @@ import pandas as pd
 import scipy.io as sio
 from tqdm import tqdm
 
-from src.field import efield, hfield
-from src.utils.dataloader import load_antenna_el_properties
+from dosipy.field import efield, hfield
+from dosipy.utils.dataloader import load_antenna_el_properties
 
 
 def _pd(row):
@@ -109,14 +107,10 @@ def _worker(iter_args):
 
     # store dataframe into hdf5 and .mat
     out_filename = f'sphere_n{N}_d{d * 1e3}_f{f / 1e9}'
-    r_c_calc.to_hdf(os.path.join('simulations',
-                                 'output-sphere-parallel-2021-05-15',
-                                 out_filename + '.h5'),
-                    key='df', mode='w')
-    sio.savemat(os.path.join('simulations',
-                             'output-sphere-parallel-2021-05-15',
-                             out_filename + '.mat'),
-                r_c_calc_dict)
+    r_c_calc.to_hdf(os.path.join('analysis', 'output-demo-sphere-2021-05-15',
+                                 out_filename + '.h5'), key='df', mode='w')
+    sio.savemat(os.path.join('analysis', 'output-demo-sphere-2021-05-15',
+                             out_filename + '.mat'), r_c_calc_dict)
 
 
 def main():
