@@ -38,10 +38,13 @@ def load_tissue_diel_properties(tissue, f):
         raise ValueError(f'Unsupported tissue. Choose {SUPPORTED_TISSUES}.')
     if 1e9 > f > 100e9:
         raise ValueError('Invalid frequency. Choose in range [1, 100] GHz')
-    tissue_diel_properties_path = os.path.join('data', 'target-model',
-                                               'tissue_properties',
-                                               'tissue_diel_properties.csv')
-    df = pd.read_csv(tissue_diel_properties_path)
+    dataset_name = os.path.join('target',
+                                'tissue_properties',
+                                'tissue_diel_properties.csv')
+    full_path = os.path.join(os.path.dirname(__file__),
+                             os.pardir, 'data', 'datasets',
+                             dataset_name)
+    df = pd.read_csv(full_path)
     df = df[(df.frequency == f) & (df.tissue == tissue)]
     _, _, sigma, eps_r, tan_loss, pen_depth = df.to_numpy()[0]
     return sigma, eps_r, tan_loss, pen_depth
@@ -70,8 +73,13 @@ def load_antenna_el_properties(f):
     assert f / 1e9 in SUPPORTED_FREQS, \
         (f'{f / 1e9} is not in supported. '
          f'Supported frequency values: {SUPPORTED_FREQS}.')
-    data = loadmat(os.path.join('data', 'source-model',
-                                'dipole', 'fs_current.mat'))['output']
+    dataset_name = os.path.join('source',
+                                'half-wave-dipole',
+                                'fs_current.mat')
+    full_path = os.path.join(os.path.dirname(__file__),
+                             os.pardir, 'data', 'datasets',
+                             dataset_name)
+    data = loadmat(full_path)['output']
     df = pd.DataFrame(data,
                       columns=['N', 'f', 'L', 'v', 'x', 'ireal', 'iimag'])
     df_f = df[df.f == f]
@@ -94,9 +102,13 @@ def load_sphere_coords(N):
         x-, y- and z-coordinates.
     """
     try:
-        fname = f'sphere_coord_n{N}.mat'
-        coord_dict = loadmat(os.path.join('data', 'target-model',
-                                          'spherical-head', fname))
+        dataset_name = os.path.join('target',
+                                    'spherical-head',
+                                    f'sphere_coord_n{N}.mat')
+        full_path = os.path.join(os.path.dirname(__file__),
+                                 os.pardir, 'data', 'datasets',
+                                 dataset_name)
+        coord_dict = loadmat(full_path)
     except FileNotFoundError as e:
         print(e)
     else:
@@ -119,10 +131,13 @@ def load_head_coords():
         x-, y- and z-coordinates.
     """
     try:
-        fname = 'head_ijnme_simpl.csv'
-        df = pd.read_csv(os.path.join('data', 'target-model',
-                                      'realistic-head', fname),
-                         names=['y', 'x', 'z'])
+        dataset_name = os.path.join('target',
+                                    'spherical-head',
+                                    'coords.csv')
+        full_path = os.path.join(os.path.dirname(__file__),
+                                 os.pardir, 'data', 'datasets',
+                                 dataset_name)
+        df = pd.read_csv(full_path, names=['y', 'x', 'z'])
     except FileNotFoundError as e:
         print(e)
     else:
@@ -155,17 +170,19 @@ def load_ear_data(mode, f):
     assert mode in ['TE', 'TM'], 'Unrecognized mode.'
     assert f in [26, 60], 'Currently unsupported frequency.'
     try:
-        dirname = os.path.join('data', 'target-model', 'realistic-ear')
         fname_E = f'E_3D_ear_{f}GHz_{mode}_surface.txt'
         fname_H = f'H_3D_ear_{f}GHz_{mode}_surface.txt'
-        df_E = pd.read_csv(os.path.join(dirname, fname_E),
+        path = os.path.join(os.path.dirname(__file__),
+                            os.pardir, 'data', 'datasets',
+                            'target', 'realistic-ear')
+        df_E = pd.read_csv(os.path.join(path, fname_E),
                            names=['x [mm]', 'y [mm]', 'z [mm]',
                                   'ExRe [V/m]', 'ExIm [V/m]',
                                   'EyRe [V/m]', 'EyIm [V/m]',
                                   'EzRe [V/m]', 'EzIm [V/m]',
                                   'area [mm^2]'],
                            header=None, delim_whitespace=True, skiprows=[0, 1])
-        df_H = pd.read_csv(os.path.join(dirname, fname_H),
+        df_H = pd.read_csv(os.path.join(path, fname_H),
                            names=['x [mm]', 'y [mm]', 'z [mm]',
                                   'HxRe [A/m]', 'HxIm [A/m]',
                                   'HyRe [A/m]', 'HyIm [A/m]',

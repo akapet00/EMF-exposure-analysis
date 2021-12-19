@@ -1,5 +1,3 @@
-import collections
-
 import jax.numpy as jnp
 import numpy as np
 from scipy import interpolate
@@ -93,7 +91,7 @@ def elementwise_quad(points, values, degree=3, interp_func=None, **kwargs):
     float
         Approximation of the integral for given data.
     """
-    if not isinstance(values, (collections.Sequence, jnp.ndarray, np.ndarray)):
+    if not isinstance(values, (jnp.ndarray, np.ndarray)):
         raise Exception('`y` must be array-like.')
     try:
         a = points[0]
@@ -132,7 +130,7 @@ def elementwise_dblquad(points, values, degree=9, interp_func=None, **kwargs):
     float
         Approximation of the integral for givend 2-D data.
     """
-    if not isinstance(values, (collections.Sequence, jnp.ndarray, np.ndarray)):
+    if not isinstance(values, (np.ndarray, np.ndarray)):
         raise Exception('`values` must be array-like.')
     try:
         bbox = [points[:, 0].min(), points[:, 0].max(),
@@ -167,7 +165,7 @@ def elementwise_rectquad(x, y, values, **kwargs):
     float
         Approximation of the integral of a given function.
     """
-    if not isinstance(values, (collections.Sequence, jnp.ndarray, np.ndarray)):
+    if not isinstance(values, (jnp.ndarray, np.ndarray)):
         raise Exception('`values` must be array-like.')
     try:
         bbox = [x.min(), x.max(), y.min(), y.max()]
@@ -214,7 +212,7 @@ def elementwise_circquad(points, values, radius, center, degree=9,
     degree = int(degree)
     if degree > 21:
         raise ValueError('Highest integration order is 21.')
-    if not isinstance(values, (collections.Sequence, jnp.ndarray, np.ndarray)):
+    if not isinstance(values, (jnp.ndarray, np.ndarray)):
         raise Exception('`values` must be array-like.')
     points = np.atleast_2d(points)
     if (interp_func is None) or (interp_func is interpolate.Rbf):
