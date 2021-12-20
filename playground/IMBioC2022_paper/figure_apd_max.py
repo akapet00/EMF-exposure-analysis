@@ -91,7 +91,7 @@ def export_circ_idx(xyz, center, radius, view='xy'):
 
 
 # fetch the data
-mode = 'te'
+mode = 'tm'
 frequency = 60
 df = load_ear_data(mode, frequency)
 df = clean_df(df)
@@ -164,8 +164,8 @@ Sr_circ = Sr_crop_t_xy[idx_circ]
 # visualize the real part of the power density normal to the extracted
 # rectangular and circular averaging surfaces
 set_colorblind()
-fig_config(latex=True, scaler=1.5)
-Sr_label = '$1/2$ $\\Re{[\\vec{E}\\times\\vec{H}^{*}]} \\cdot \\vec{n}$ [W/m2]'
+fig_config(latex=True, scaler=1.5, text_size=18)
+Sr_label = r'$1/2$ $\Re{[\vec{E}\times\vec{H}^{*}]} \cdot \vec{n}$ [W/m$^2$]'
 fig, ax = scatter_2d({'$x$ [mm]': xyz_crop_t_xy[:, 0],
                       '$y$ [mm]': xyz_crop_t_xy[:, 1],
                       Sr_label: Sr_crop_t_xy}, s=0.1)
@@ -179,9 +179,9 @@ save_fig(fig, fname=fname, formats=['png'])
 
 # zoom in to the rectangular integration surface
 set_colorblind()
-fig_config(latex=True, scaler=1.5)
-fig, ax = scatter_2d({'x [mm]': xyz_rect[:, 0],
-                      'y [mm]': xyz_rect[:, 1],
+fig_config(latex=True, scaler=1.5, text_size=18)
+fig, ax = scatter_2d({'$x$ [mm]': xyz_rect[:, 0],
+                      '$y$ [mm]': xyz_rect[:, 1],
                       Sr_label: Sr_rect}, s=20)
 APD_rect = elementwise_dblquad(points=np.c_[xyz_rect[:, 0], xyz_rect[:, 1]],
                                values=Sr_rect,
@@ -193,9 +193,9 @@ save_fig(fig, fname=fname, formats=['png'])
 
 # zoom in to the circular integration surface
 set_colorblind()
-fig_config(latex=True, scaler=1.5)
-fig, ax = scatter_2d({'x [mm]': xyz_circ[:, 0],
-                      'y [mm]': xyz_circ[:, 1],
+fig_config(latex=True, scaler=1.5, text_size=18)
+fig, ax = scatter_2d({'$x$ [mm]': xyz_circ[:, 0],
+                      '$y$ [mm]': xyz_circ[:, 1],
                       Sr_label: Sr_circ}, s=20)
 APD_circ = elementwise_circquad(points=np.c_[xyz_circ[:, 0], xyz_circ[:, 1]],
                                 values=Sr_circ,

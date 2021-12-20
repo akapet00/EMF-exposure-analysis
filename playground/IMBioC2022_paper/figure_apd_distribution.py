@@ -44,17 +44,21 @@ xyz_crop_t = np.c_[xyz_crop[:, 0] - center_crop[0],
 
 # scatter plot
 set_colorblind()
-fig_config(latex=True, scaler=2)
+fig_config(latex=True, scaler=2, text_size=18)
 Sr_label = '$1/2$ $\\Re{[\\vec{E}\\times\\vec{H}^{*}]} \\cdot \\vec{n}$ [W/m2]'
-fig, ax = scatter_3d({'z [mm]': xyz_crop_t[:, 2],
-                      'x [mm]': xyz_crop_t[:, 0],
-                      'y [mm]': xyz_crop_t[:, 1],
+fig, ax = scatter_3d({'$z$ [mm]': xyz_crop_t[:, 2],
+                      '$x$ [mm]': xyz_crop_t[:, 0],
+                      '$y$ [mm]': xyz_crop_t[:, 1],
                       Sr_label: Sr_crop},
                      elev=[15], azim=[150])
 # manually turn off visibility of panes -.-
 ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
 ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
 ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
+# and also manually move labels a bit
+ax.xaxis.labelpad = 15
+ax.yaxis.labelpad = 15
+ax.zaxis.labelpad = 12
 
 # save figure
 fname = os.path.join('figures', f'apd_distribution_{mode}{frequency}')
