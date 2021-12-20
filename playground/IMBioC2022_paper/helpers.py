@@ -60,40 +60,6 @@ def export_pcd(df, area=False):
     return pcd
 
 
-def visualize_ear(xyz, show=False, **kwargs):
-    """Return point cloud object and visualize the ear model in open3d
-    visualizer.
-
-    Parameters
-    ----------
-    xyz : numpy.ndarray
-        Point cloud defining a model in 3-D.
-    show : bool, optional
-        Fire up `open3d` visualizer.
-    kwargs : dict, optional
-        Additional keyword arguments for
-        `open3d.visualization.draw_geometries` function.
-
-    Returns
-    -------
-    None
-    """
-    pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(xyz)
-    center = pcd.get_center()
-    pcd.paint_uniform_color([0.5, 0.5, 0.5])
-    cframe = o3d.geometry.TriangleMesh.create_coordinate_frame(
-        size=9, origin=center+np.array([6, -25, -20])
-    )
-    pcd.estimate_normals()
-    radii = [0.005, 0.01, 0.02, 0.04]
-    rec_mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_ball_pivoting(
-        pcd, o3d.utility.DoubleVector(radii))
-    if show:
-        o3d.visualization.draw_geometries([cframe, pcd, rec_mesh], **kwargs)
-    return cframe, pcd
-
-
 def get_imcolors(geometries, config):
     """Return colors from given 3-D point cloud objects.
 
@@ -207,80 +173,6 @@ def estimate_normals(xyz, take_every=1, knn=30, fast=True):
     pcd.normalize_normals()
     n = np.asarray(pcd.normals)
     return n
-
-
-def export_rect_idx(xyz, center, edge_length, view='xy'):
-    """Extract specific points that correspond to a rectangle, defined
-    with a central point and its edge length, from a point cloud.
-
-    Parameters
-    ----------
-    xyz : numpy.ndarray
-        Point cloud defining a model in 3-D.
-    center : tuple or list
-        z- and y-coordinate that defines the center of a desired
-        rectangle.
-    edge_length : float
-        Edge length of a desired rectangle.
-    view : string
-        Point of view for point extraction. Currently supported `xy`
-        and `zy`.
-
-    Returns
-    -------
-    tuple
-        Origin of a desired rectangle and indexes of all points from a point
-        cloud that falls into a rectangle.
-    """
-    x_bound = [center[0] - edge_length / 2, center[0] + edge_length / 2]
-    y_bound = [center[1] - edge_length / 2, center[1] + edge_length / 2]
-    origin = [x_bound[0], y_bound[0]]
-    if view == 'xy':
-        col_idx = 0
-    elif view == 'zy':
-        col_idx = 2
-    else:
-        raise ValueError(f'Not supported view: {view}')
-    idx_rect = np.where((xyz[:, col_idx] > x_bound[0])
-                        & (xyz[:, col_idx] < x_bound[1])
-                        & (xyz[:, 1] > y_bound[0])
-                        & (xyz[:, 1] < y_bound[1]))[0]
-    return origin, idx_rect
-
-
-def export_circ_idx(xyz, center, radius, view='xy'):
-    """Extract specific points that correspond to a disk, defined
-    with a central point and its radius, from a point cloud.
-
-    Parameters
-    ----------
-    xyz : numpy.ndarray
-        Point cloud defining a model in 3-D.
-    center : tuple or list
-        z- and y-coordinate that defines the center of a desired
-        disk.
-    radius : float
-        Radius of a desired disk.
-    view : string
-        Point of view for point extraction. Currently supported `xy`
-        and `zy`.
-
-    Returns
-    -------
-    numpy.ndarray
-        Indexes of all points from a point cloud that falls into a
-        circle describing a disk.
-    """
-    cx, cy = center
-    if view == 'xy':
-        col_idx = 0
-    elif view == 'zy':
-        col_idx = 2
-    else:
-        raise ValueError(f'Not supported view: {view}')
-    idx_circ = np.where(
-        (xyz[:, col_idx] - cx) ** 2 + (xyz[:, 1] - cy) ** 2 < radius ** 2)[0]
-    return idx_circ
 
 
 def diff_in_dB(apd1, apd2):
