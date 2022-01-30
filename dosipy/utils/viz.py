@@ -139,7 +139,7 @@ def _minmax_scale(x, _range=(0, 1)):
 
 
 def colormap_from_array(x, cmap='viridis', alpha=None, bytes=False):
-    """Min-max scaler.
+    """Return array values mapped into corresponding RGB values.
 
     Parameters
     ----------
