@@ -196,12 +196,85 @@ def normals_to_rgb(n):
     numpy.ndarray
         corresponding RGB color on the RGB cube
     """
-    if n.ndim != 3:
+    if n.shape[1] != 3:
         raise ValueError('`n` should be a 3-dimensional vector.')
     n = np.divide(
         n, np.tile(
             np.expand_dims(
-                np.sqrt(
-                    np.sum(np.square(normals), axis=1)), axis=1), [1, 3]))
-    rgb = 127.5 + 127.5 * normals
+                np.sqrt(np.sum(np.square(n), axis=1)), axis=1), [1, 3]))
+    rgb = 127.5 + 127.5 * n
     return rgb / 255.0
+
+
+def export_rect_idx(xyz, center, edge_length, view='xy'):
+    """Extract specific points that correspond to a rectangle, defined
+    with a central point and its edge length, from a point cloud.
+
+    Parameters
+    ----------
+    xyz : numpy.ndarray
+        Point cloud defining a model in 3-D.
+    center : tuple or list
+        z- and y-coordinate that defines the center of a desired
+        rectangle.
+    edge_length : float
+        Edge length of a desired rectangle.
+    view : string
+        Point of view for point extraction. Currently supported `xy`
+        and `zy`.
+
+    Returns
+    -------
+    tuple
+        Origin of a desired rectangle and indexes of all points from a point
+        cloud that falls into a rectangle.
+    """
+    x_bound = [center[0] - edge_length / 2, center[0] + edge_length / 2]
+    y_bound = [center[1] - edge_length / 2, center[1] + edge_length / 2]
+    origin = [x_bound[0], y_bound[0]]
+    if view == 'xy':
+        col_idx = 0
+    elif view == 'zy':
+        col_idx = 2
+    else:
+        raise ValueError(f'Not supported view: {view}')
+    idx_rect = np.where((xyz[:, col_idx] > x_bound[0])
+                        & (xyz[:, col_idx] < x_bound[1])
+                        & (xyz[:, 1] > y_bound[0])
+                        & (xyz[:, 1] < y_bound[1]))[0]
+    return origin, idx_rect
+
+
+def export_circ_idx(xyz, center, radius, view='xy'):
+    """Extract specific points that correspond to a disk, defined
+    with a central point and its radius, from a point cloud.
+
+    Parameters
+    ----------
+    xyz : numpy.ndarray
+        Point cloud defining a model in 3-D.
+    center : tuple or list
+        z- and y-coordinate that defines the center of a desired
+        disk.
+    radius : float
+        Radius of a desired disk.
+    view : string
+        Point of view for point extraction. Currently supported `xy`
+        and `zy`.
+
+    Returns
+    -------
+    numpy.ndarray
+        Indexes of all points from a point cloud that falls into a
+        circle describing a disk.
+    """
+    cx, cy = center
+    if view == 'xy':
+        col_idx = 0
+    elif view == 'zy':
+        col_idx = 2
+    else:
+        raise ValueError(f'Not supported view: {view}')
+    idx_circ = np.where(
+        (xyz[:, col_idx] - cx) ** 2 + (xyz[:, 1] - cy) ** 2 < radius ** 2)[0]
+    return idx_circ
