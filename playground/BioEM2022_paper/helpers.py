@@ -63,7 +63,7 @@ def export_pcd(df, area=False):
     return pcd
 
 
-def get_imcolors(geometries, config):
+def get_imcolors(geometries, config, point_show_normal=False):
     """Return colors from given 3-D point cloud objects.
 
     Parameters
@@ -73,6 +73,8 @@ def get_imcolors(geometries, config):
         `open3d.geometry.PointCloud` objects.
     config : dict
         View controls for visualizer.
+    point_show_normal : bool
+        Show normalized normal vectors as arrows at each point.
 
     Returns
     -------
@@ -88,6 +90,7 @@ def get_imcolors(geometries, config):
     vis.get_view_control().set_front(config['front'])
     vis.get_view_control().set_lookat(config['lookat'])
     vis.get_view_control().set_up(config['up'])
+    vis.get_render_option().point_show_normal = point_show_normal
     vis.poll_events()
     color = vis.capture_screen_float_buffer()
     vis.destroy_window()
