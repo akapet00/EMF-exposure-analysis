@@ -147,7 +147,7 @@ def load_head_coords():
     return df
 
 
-def load_ear_data(mode, f):
+def load_ear_data(mode, f, surface='back'):
     """Return the coordinates for the ear model, where each point in
     space has E and H field values precomputed for a given mode and
     a frequency of plane wave.
@@ -159,6 +159,8 @@ def load_ear_data(mode, f):
         magnetic).
     f : float
         Frequency in GHz.
+    surface : str, optional
+        Model surface of the direct exposure, either `back` or `front`.
 
     Returns
     -------
@@ -167,11 +169,13 @@ def load_ear_data(mode, f):
     """
     mode = str(mode).upper()
     f = int(f)
+    surface = str(surface).lower()
     assert mode in ['TE', 'TM'], 'Unrecognized mode.'
     assert f in [26, 60], 'Currently unsupported frequency.'
+    assert surface in ['back', 'front'], 'Unrecognized surface.'
     try:
-        fname_E = f'E_3D_ear_{f}GHz_{mode}_surface.txt'
-        fname_H = f'H_3D_ear_{f}GHz_{mode}_surface.txt'
+        fname_E = f'E_3D_ear_{f}GHz_{mode}_surface_{surface}.txt'
+        fname_H = f'H_3D_ear_{f}GHz_{mode}_surface_{surface}.txt'
         path = os.path.join(os.path.dirname(__file__),
                             os.pardir, 'data', 'datasets',
                             'target', 'realistic-ear')
