@@ -31,6 +31,7 @@ def fig_config(latex=False, nrows=1, ncols=1, scaler=1.0, text_size=16,
     """
     plt.rcParams.update({
         'text.usetex': latex,
+        'text.latex.preamble': r'\usepackage{amsmath}',
         'font.family': 'serif',
         'font.size': text_size,
         'figure.figsize': (4.774 * scaler * ncols, 2.950 * scaler * nrows),
