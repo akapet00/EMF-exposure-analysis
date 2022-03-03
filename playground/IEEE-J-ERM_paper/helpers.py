@@ -175,22 +175,38 @@ def estimate_normals(xyz, take_every=1, knn=30, fast=True):
     return n
 
 
-def diff_in_dB(apd1, apd2):
-    """Return the difference in dB between two values for the power.
-
+def export_rect_idx(xyz, center, edge_length, view='xy'):
+    """Extract specific points that correspond to a rectangle, defined
+    with a central point and its edge length, from a point cloud.
     Parameters
     ----------
-    apd1 : float or numpy.ndarray
-        Absorbed power density, or anything else measured in Watts.
-    apd2 : float or numpy.ndarray
-        Absorbed power density, or anything else measured in Watts to
-        be compared to `apd1`.
-
+    xyz : numpy.ndarray
+        Point cloud defining a model in 3-D.
+    center : tuple or list
+        z- and y-coordinate that defines the center of a desired
+        rectangle.
+    edge_length : float
+        Edge length of a desired rectangle.
+    view : string
+        Point of view for point extraction. Currently supported `xy`
+        and `zy`.
     Returns
     -------
-    float or numpy.ndarray
-        Difference(s) in dB between two (arrays of) values of the
-        power.
+    tuple
+        Origin of a desired rectangle and indexes of all points from a point
+        cloud that falls into a rectangle.
     """
-    diff = np.abs(10 * np.log10(apd1 / apd2))
-    return diff
+    x_bound = [center[0] - edge_length / 2, center[0] + edge_length / 2]
+    y_bound = [center[1] - edge_length / 2, center[1] + edge_length / 2]
+    origin = [x_bound[0], y_bound[0]]
+    if view == 'xy':
+        col_idx = 0
+    elif view == 'zy':
+        col_idx = 2
+    else:
+        raise ValueError(f'Not supported view: {view}')
+    idx_rect = np.where((xyz[:, col_idx] > x_bound[0])
+                        & (xyz[:, col_idx] < x_bound[1])
+                        & (xyz[:, 1] > y_bound[0])
+                        & (xyz[:, 1] < y_bound[1]))[0]
+    return origin, idx_rect
