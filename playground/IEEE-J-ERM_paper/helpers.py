@@ -178,6 +178,7 @@ def estimate_normals(xyz, take_every=1, knn=30, fast=True):
 def export_rect_idx(xyz, center, edge_length, view='xy'):
     """Extract specific points that correspond to a rectangle, defined
     with a central point and its edge length, from a point cloud.
+    
     Parameters
     ----------
     xyz : numpy.ndarray
@@ -190,6 +191,7 @@ def export_rect_idx(xyz, center, edge_length, view='xy'):
     view : string
         Point of view for point extraction. Currently supported `xy`
         and `zy`.
+    
     Returns
     -------
     tuple
@@ -210,3 +212,34 @@ def export_rect_idx(xyz, center, edge_length, view='xy'):
                         & (xyz[:, 1] > y_bound[0])
                         & (xyz[:, 1] < y_bound[1]))[0]
     return origin, idx_rect
+
+
+def curvature(xyz, radius=5):
+    """Extract curvature at each point of the point cloud.
+    
+    Parameters
+    ----------
+    xyz : numpy.ndarray
+        The point cloud to search for neighbors of.
+    radius : numpy.array or float or int, optional
+        The radius of points to return.
+    
+    Returns
+    -------
+    numpy.ndarray
+        A curvature map.
+    """
+    from scipy.spatial import KDTree
+    tree = KDTree(points)
+    curvature = [0] * points.shape[0]
+    for index, point in enumerate(points):
+        indices = tree.query_ball_point(point, radius)
+        # local covariance
+        M = np.array([ points[i] for i in indices ]).T
+        M = np.cov(M)
+        # eigen decomposition
+        V, E = np.linalg.eig(M)
+        # h3 < h2 < h1
+        h1, h2, h3 = V
+        curvature[index] = h3 / (h1 + h2 + h3)
+    return np.asarray(curvature)
