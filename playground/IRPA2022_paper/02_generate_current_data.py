@@ -17,7 +17,7 @@ from dosipy.utils.dataloader import load_antenna_el_properties
 from utils import *
 
 # load pre-computed source data
-f = 60e9  # operating frequency of the antenna
+f = 26e9  # operating frequency of the antenna
 antenna_data = load_antenna_el_properties(f)
 Is = antenna_data.ireal.to_numpy() + antenna_data.iimag.to_numpy() * 1j
 Is = np.asarray(Is)
@@ -162,6 +162,8 @@ grad_Is_nn = jit(vmap(grad(Is_nn)))
 
 
 # save the data
+np.save(os.path.join('data', f'x_at{int(f / 1e9)}GHz'),
+        np.asarray(xs_interp))
 np.save(os.path.join('data', f'current_at{int(f / 1e9)}GHz'),
         np.asarray(Is_fit_inv_norm))
 np.save(os.path.join('data', f'grad_current_at{int(f / 1e9)}GHz'),
