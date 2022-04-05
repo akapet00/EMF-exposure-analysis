@@ -53,3 +53,21 @@ def cyl2cart(r, theta, z):
     x = r * jnp.cos(theta)
     y = r * jnp.sin(theta)
     return x, y, z
+
+
+def sph_normals(r, theta, phi):
+    """Return unit vector field components normal to spherical
+    surface."""
+    nx = r ** 2 * jnp.cos(phi) * jnp.sin(theta) ** 2 
+    ny = r ** 2 * jnp.sin(phi) * jnp.sin(theta) ** 2
+    nz = r ** 2 * jnp.cos(theta) * jnp.sin(theta)
+    return nx, ny, nz
+
+
+def cyl_normals(r, theta, z):
+    """Return unit vector field components normal to cylndrical
+    surface."""
+    nx = jnp.cos(theta)
+    ny = jnp.sin(theta)
+    nz = 0
+    return nx, ny, nz
