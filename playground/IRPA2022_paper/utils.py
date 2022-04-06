@@ -69,5 +69,5 @@ def cyl_normals(r, theta, z):
     surface."""
     nx = jnp.cos(theta)
     ny = jnp.sin(theta)
-    nz = 0
+    nz = jnp.zeros_like(z)
     return nx, ny, nz
