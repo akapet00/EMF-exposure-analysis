@@ -298,7 +298,6 @@ def save_fig(fig, fname, formats=['pdf']):
     None
     """
     for format in formats:
-        fname = f'{fname}.{format}'
-        fig.savefig(fname, dpi=300, facecolor='w', edgecolor='w',
+        fig.savefig(f'{fname}.{format}', dpi=300, facecolor='w', edgecolor='w',
                     orientation='portrait', format=format, transparent=True,
                     bbox_inches='tight', pad_inches=0.1)
