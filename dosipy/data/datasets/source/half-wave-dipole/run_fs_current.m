@@ -16,7 +16,7 @@ W = [0.3478548451374538, 0.6521451548625461, ...
         0.6521451548625461, 0.3478548451374538]; %  integration weights
 
 % variables
-frequencies = [3., 3.5, 6., 10., 15., 20., 26., ...
+frequencies = [2.4, 3., 3.5, 5., 6., 10., 15., 20., 26., ...
                  30., 40., 60., 80., 100.];      %  frequencies in GHz
 dipole_scalers = 2;                              %  dipole size scaler
 
@@ -31,7 +31,7 @@ for f_idx = 1:length(frequencies)
         dipole_scaler = dipole_scalers(ds_idx);
         L = lambda / dipole_scaler;
         r = L / N / 10;
-        [curr, x] = current(N, f, L, r, V);
+        [curr, x] = solver(N, f, L, r, V);
         output(rel_idx:rel_idx+N, 1) = repelem(N, N + 1)';
         output(rel_idx:rel_idx+N, 2) = repelem(f, N + 1)';
         output(rel_idx:rel_idx+N, 3) = repelem(L, N + 1)';
@@ -44,4 +44,4 @@ disp('Run finalized');
 toc;
 
 % save simulation
-save('dataset.mat', 'output');
+save('fs_current.mat', 'output');
