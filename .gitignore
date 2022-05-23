@@ -136,7 +136,8 @@ simulations/*.h5
 simulations/*.mat
 simulations/*.txt
 
-# large data files
+# large data files with exceptions
 playground/*/data/*.txt
 playground/*/data/*.h5
 playground/*/data/*.mat
+!playground/SoftCOM2022/data/*.mat
