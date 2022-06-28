@@ -262,9 +262,11 @@ def diff(fun, arg=0):
     """
     def df(points, eps=1e-3):
         if arg == 0:
-            return (fun(points[:, 0] + eps, points[:, 1]) - fun(points[:, 0] - eps, points[:, 1])) / (2 * eps)
+            return (fun(np.c_[points[:, 0] + eps, points[:, 1]])
+                    - fun(np.c_[points[:, 0] - eps, points[:, 1]])) / (2 * eps)
         elif arg == 1:
-            return (fun(points[:, 0], points[:, 1] + eps) - fun(points[:, 0], points[:, 1] - eps)) / (2 * eps)
+            return (fun(np.c_[points[:, 0], points[:, 1] + eps])
+                    - fun(np.c_[points[:, 0], points[:, 1] - eps])) / (2 * eps)
         else:
             raise ValueError('Unsupported `arg`.')
     return df
