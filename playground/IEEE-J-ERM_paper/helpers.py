@@ -1,7 +1,6 @@
 """Utility functions."""
 
 import numpy as np
-import open3d as o3d
 
 
 def clean_df(df):
@@ -76,6 +75,7 @@ def get_imcolors(geometries, config):
     open3d.geometry.Image
         Captured image RGB.
     """
+    import open3d as o3d
     vis = o3d.visualization.Visualizer()
     vis.create_window(visible=True)
     for geometry in geometries:
@@ -165,6 +165,7 @@ def estimate_normals(xyz, take_every=1, knn=30, fast=True):
         point cloud, and each column corresponds to each component of
         the normal vector.
     """
+    import open3d as o3d
     xyz = xyz[::take_every, :]
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(xyz)
@@ -270,3 +271,56 @@ def diff(fun, arg=0):
         else:
             raise ValueError('Unsupported `arg`.')
     return df
+
+
+
+def generate_random_pc(n_points=100, slope=(0.5, 0.), extent=2, noise=1.5):
+    """Return a randomly distributed point cloud generated around a
+    target point.
+    
+    Parameters
+    ----------
+    n_points : int, optional
+        Number of points in the point cloud.
+    slope : tuple, optional
+        Slope of the x- and y-component of the point cloud.
+    extent : number, optional
+        Limits for x- and y-axis.
+    noise : number, optional
+        Additional noise.
+    
+    Returns
+    -------
+    tuple
+        Array of points and the target point.
+    """
+    slope_x, slope_y = slope
+    x_target = 0
+    y_target = 0
+    z_target = slope_x * x_target + slope_y * y_target
+    target = (0, 0, z_target)
+    x = np.random.normal(loc=x_target, scale=extent, size=n_points)
+    y = np.random.normal(loc=y_target, scale=extent, size=n_points)
+    z = slope_x * x + slope_y * y + np.random.normal(scale=noise, size=x.size)
+    pc = np.c_[x, y, z]
+    return pc, target
+
+
+def pca(pc):
+    """Return the orthogonal basis of a point cloud.
+    
+    Parameters
+    ----------
+    pc : numpy.ndarray
+        (N, 3)-shaped array where N stands for the number of points.
+    
+    Returns
+    -------
+    tuple
+        Array of eigenvalues and 2-D array of unsorted eigenvectors.
+    """
+    mean_pc = np.mean(pc, axis=0)
+    normalized_pc = pc - mean_pc
+    H = np.dot(normalized_pc.T, normalized_pc)
+    eigenvector, eigenvalue, _ = np.linalg.svd(H)
+    return eigenvalue, eigenvector
