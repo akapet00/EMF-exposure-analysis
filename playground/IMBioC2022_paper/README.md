@@ -1,0 +1,12 @@
+# Assessment of area-average absorbed power density on realistic tissue models at mmWaves
+
+This repository holds the code for the conference paper *Assessment of area-average absorbed power density on realistic tissue models at mmWaves*, published in proceedings of 2022 MTT-S International Microwave Bio Conference.
+
+
+## Abstract
+
+Currently, most state-of-the-art research in computational dosimetry utilizes flat-surface tissue models to simplify the problem geometry and thus mitigate computational complexity. However, depending on the ratio of the penetration depth and the curvature radius, this may lead to a non-correct estimation of the power absorbed by the tissues due to constructive/destructive interference. In this study, we propose an accurate evaluation of the area-average absorbed power density in curved tissue-equivalent models by computing the surface integral of the normal component of the absorbed power density vector field. The numerical analysis is performed for plane wave exposure of an ear model at 60 GHz. We also investigate the effect of the averaging area shape on the absorbed power density by considering 1 cm2 square- and disk-shaped averaging surfaces. Results show a substantial relative difference of 14 % in the area-averaged absorbed power density over a disk-shaped averaging surface between transverse electric and magnetic polarization, with the reference being the value of the area-averaged absorbed power density for a planar homogeneous model and normal incidence. By using the same reference value, negligible differences of 1.81 % and 0.92 % for transverse electric and magnetic polarization, respectively, are present when the averaging area shape changes. According to the studied exposure scenarios, the area-averaged absorbed power density variations as a function of the averaging surface geometry are less significant than those related to the polarization of the incident field.
+
+## Cite
+
+Lojić Kapetanović A, Sacco G, Poljak D, Zhadobov M. Assessment of area-average absorbed power density on realistic tissue models at mmWaves. 2022 IEEE MTT-S International Microwave Biomedical Conference (IMBioC), 2022, pp. 153-155, doi: 10.1109/IMBioC52515.2022.9790150.
