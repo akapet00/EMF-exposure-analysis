@@ -3,13 +3,14 @@
 import numpy as np
 from scipy.integrate import odeint
 
-from .constants import pi, rho_b, C_b
+from .constants import pi
 
 
 class BHTE(object):
     """Bio-heat transfer equation class."""
 
-    def __init__(self, T, t_res, X, s_res, h=10., Ta=37., Tc=37., Tf=25., Qm=33800., SAR=None):
+    def __init__(self, sim_time, t_res, X, s_res, h=10., Ta=37., Tc=37.,
+                 Tf=25., Qm=33800., SAR=None):
         """Initialize the bio-heat transfer equation solver for skin.
 
         Parameters
@@ -24,8 +25,6 @@ class BHTE(object):
             solution domain in meters, respectively.
         s_res : int
             Spatial resolution.
-        m_b : scalar, optional
-            Volumetric blood perfusion in m^3/kg/s.
         h : scalar, optional
             Heat convection coefficient between the skin surface and
             air in W/m^2/°C.
@@ -48,7 +47,7 @@ class BHTE(object):
         numpy.ndarray
             Temperature distribution in time and space.
         """
-        if not isinstance(T, (int, float, )):
+        if not isinstance(sim_time, (int, float, )):
             raise ValueError('Simulation time should be a real-value number.')
         if not isinstance(t_res, (int, )) & (t_res > 0):
             raise ValueError('Time resolution must be a positive integer.')
@@ -82,21 +81,25 @@ class BHTE(object):
                              ' `s_res`.')
         if SAR is None:
             SAR = np.zeros(s_res**ndim).reshape([s_res] * ndim)
-        self.T = T
+        self.sim_time = sim_time
         self.t_res = t_res
         self._create_time_domain()
         self.ndim = ndim
         self.s_res = s_res
+        self._generate_lap_operator()
         self.h = h
         self.Ta = Ta
         self.Tc = Tc
         self.Tf = Tf
         self.Qm = Qm
         self.SAR = SAR
-        self.k = 0.37  # thermal conductivity in W/m/°C
+        self.k = 0.37  # thermal conductivity of skin in W/m/°C
         self.rho = 1109.  # skin density in kg/m^3
         self.C = 3391.  # specific heat of skin in Ws/kg/°C
         self.mb = 1.76e-6  # blood perfusion in m^3/kg/s = 106 mL/min/kg
+        self.kb = 0.52  # thermal conductivity of blood in W/m/°C
+        self.rhob = 1000.  # blood density in kg/m^3
+        self.Cb = 3617.  # specific heat of blood in J/kg/°C
 
     def _create_time_domain(self):
         """Initialize the time domain for the solver.
@@ -110,7 +113,7 @@ class BHTE(object):
         numpy.ndarray
             Time domain.
         """
-        t = np.linspace(0, self.T, num=self.t_res)
+        t = np.linspace(0, self.sim_time, num=self.t_res)
         self.t = t
 
     def _generate_lap_operator(self):
@@ -191,7 +194,6 @@ class BHTE(object):
             axes = (0, 1)
         else:
             axes = (0, 1, 2)
-        self._generate_lap_operator()
 
         def rhs(T, t):
             T = T.reshape(*target_shape)
@@ -200,7 +202,7 @@ class BHTE(object):
             lapT = np.fft.ifftn(lapT_fft, axes=axes)
 
             dTdt = (self.k * lapT
-                    + rho_b * self.rho * self.mb * C_b * (self.Ta - T)
+                    + self.rhob * self.rho * self.mb * self.Cb * (self.Ta - T)
                     + self.Qm
                     + self.SAR * self.rho) / (self.rho * self.C)
             return dTdt.real.ravel()
