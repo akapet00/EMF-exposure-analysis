@@ -15,7 +15,7 @@ class BHTE(object):
 
         Parameters
         ----------
-        T : scalar
+        sim_time : scalar
             Simulation time in seconds.
         t_res : int
             Time resolution.
@@ -130,14 +130,14 @@ class BHTE(object):
         if self.ndim == 1:
             dz = self.depth / self.s_res
             kz = 2 * pi * np.fft.fftfreq(self.s_res, d=dz)
-            self.lap = kz ** 2
+            self.lap = - kz ** 2
         elif self.ndim == 2:
             dx = self.length / self.s_res
             dy = self.width / self.s_res
             kx = 2 * pi * np.fft.fftfreq(self.s_res, d=dx)
             ky = 2 * pi * np.fft.fftfreq(self.s_res, d=dy)
             KX, KY = np.meshgrid(kx, ky)
-            lap = KX ** 2 + KY ** 2
+            lap = -(KX ** 2 + KY ** 2)
             lapinv = np.zeros_like(lap)
             lapinv[lap != 0] = 1. / lap[lap != 0]
             DX = 1j * KX * lapinv
@@ -151,7 +151,7 @@ class BHTE(object):
             ky = 2 * pi * np.fft.fftfreq(self.s_res, d=dy)
             kz = 2 * pi * np.fft.fftfreq(self.s_res, d=dz)
             KX, KY, KZ = np.meshgrid(kx, ky, kz)
-            lap = KX ** 2 + KY ** 2 + KZ ** 2
+            lap = -(KX ** 2 + KY ** 2 + KZ ** 2)
             lapinv = np.zeros_like(lap)
             lapinv[lap != 0] = 1. / lap[lap != 0]
             DX = 1j * KX * lapinv
@@ -199,13 +199,13 @@ class BHTE(object):
             T = T.reshape(*target_shape)
             T_fft = np.fft.fftn(T, axes=axes)
             lapT_fft = self.lap * T_fft
-            lapT = np.fft.ifftn(lapT_fft, axes=axes)
+            lapT = np.fft.ifftn(lapT_fft, axes=axes).real
 
             dTdt = (self.k * lapT
-                    + self.rhob * self.rho * self.mb * self.Cb * (self.Ta - T)
+                    + self.rhob * self.mb * self.Cb * (self.Ta - T)
                     + self.Qm
                     + self.SAR * self.rho) / (self.rho * self.C)
-            return dTdt.real.ravel()
+            return dTdt.ravel()
         
         T = odeint(func=rhs, y0=self.T0, t=self.t, **kwargs)
         return T.reshape(-1, *target_shape)
