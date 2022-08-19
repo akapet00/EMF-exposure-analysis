@@ -2,236 +2,208 @@
 
 import numpy as np
 from scipy.integrate import odeint
-from scipy.special import erfc
 
-from .constants import pi
-
-
-def init_temp(z, k, rho_b, C_b, m_b, h_0, T_a, T_c, T_f, Q_m):
-    """Return the temperature distribution by solving the 1-D bioheat
-    equation analytically over tissue depth. This can serve as the
-    initial temperature distribution before solving bioheat equation
-    numerically via the pseudo-spectral method.
-
-    Ref: Deng, ZH; Liu, J. Analytical study on bioheat transfer
-    problems with spatial or transient heating on skin surface or
-    inside biological bodies, J Biomech Eng. 2002, 124(6): 638-649,
-    DOI: 10.1115/1.1516810
-
-    Parameters
-    ----------
-    z : numpy.ndarray
-        1-D space representing the solution domain.
-    k : float
-        Thermal conductivity of the tissue.
-    rho_b : float
-        Blood density.
-    C_b : float
-        Blood heat capacity.
-    m_b : float
-        Volumetric blood perfusion.
-    h_0 : float
-        Heat convection coefficient between a skin surface and the air.
-    T_a : float
-        Arterial temperature.
-    T_c : float
-        Body core temperature.
-    T_f : float
-        Surrounding air temperature.
-    Q_m : float
-        Metabolic heat generation.
-
-    Returns
-    -------
-    numpy.ndarray
-        Initial temperature distribution prior to exposure.
-    """
-    pen_depth = np.max(z)
-    w_b = m_b * rho_b * C_b
-    A = w_b / k
-    denom = (np.sqrt(A) * np.cosh(np.sqrt(A) * pen_depth)
-             + (h_0 / k) * np.sinh(np.sqrt(A) * pen_depth))
-    numer = ((T_c - T_a - Q_m / w_b) * (np.sqrt(A) * np.cosh(np.sqrt(A) * z)
-             + (h_0 / k) * np.sinh(np.sqrt(A) * z))
-             + h_0 / k * (T_f - T_a - Q_m / w_b) * np.sinh(np.sqrt(A)
-             * (pen_depth - z)))
-    return T_a + Q_m / w_b + numer / denom
+from .constants import pi, rho_b, C_b
 
 
-def delta_temp_analytic(t, pen_depth, k, rho, C, IPD, T_tr):
-    """Return the closed-form solution of the 1-D bioheat equation with
-    no blood perfusion considered over given simulation period, `t`.
+class BHTE(object):
+    """Bio-heat transfer equation class."""
 
-    Ref: Foster, KR; Ziskin, MC; Balzano, Q. Thermal response of human
-    skin to microwave energy: A critical review. Health Phys. 2002,
-    111(6): 528-541, DOI: 10.1097/HP.0000000000000571
+    def __init__(self, T, t_res, X, s_res, h=10., Ta=37., Tc=37., Tf=25., Qm=33800., SAR=None):
+        """Initialize the bio-heat transfer equation solver for skin.
 
-    Parameters
-    ----------
-    t : numpy.ndarray
-        Simulation time.
-    pen_depth : float
-        Energy penetration depth.
-    k : float
-        Thermal conductivity of the tissue.
-    rho : float
-        Tissue density.
-    C : float
-        Heat capacity of the tissue.
-    IPD : float
-        Incident power density of the tissue surface
-    T_tr : float
-        Transmission coefficient into the tisse.
+        Parameters
+        ----------
+        T : scalar
+            Simulation time in seconds.
+        t_res : int
+            Time resolution.
+        X : tuple
+            Either 1-, 2-. or 3-element tuple corresponding to either
+            depth, length and width, or length, width and depth of
+            solution domain in meters, respectively.
+        s_res : int
+            Spatial resolution.
+        m_b : scalar, optional
+            Volumetric blood perfusion in m^3/kg/s.
+        h : scalar, optional
+            Heat convection coefficient between the skin surface and
+            air in W/m^2/°C.
+        T_a : scalar, optional
+            Arterial temperature in degrees Celsius.
+        T_c : scalar, optional
+            Body core temperature in degrees Celsius.
+        T_f : scalar, optional
+            Surrounding air temperature in degrees Celsius.
+        Q_m : scalar, optional
+            Metabolic heat generation in W/m^3.
+        SAR : numpy.ndarray, optional
+            Specific absorption rate values in W/m3 with the shape that
+            corresponds to `s_res`. If SAR is not specified,
+            temperature is computed without taking external source of
+            radiation into account.
 
-    Returns
-    -------
-    numpy.ndarray
-        Temperature rise during the time of exposure.
-    """
-    C_1 = 2 * IPD * T_tr / np.sqrt(pi * k * rho * C)
-    C_2 = IPD * T_tr * pen_depth / k
-    tau = 4 / pi * (C_2 / C_1) ** 2
-    return (C_1 * np.sqrt(t)
-            - C_2 * (1 - np.exp(t / tau) * erfc(np.sqrt(t / tau))))
+        Returns
+        -------
+        numpy.ndarray
+            Temperature distribution in time and space.
+        """
+        if not isinstance(T, (int, float, )):
+            raise ValueError('Simulation time should be a real-value number.')
+        if not isinstance(t_res, (int, )) & (t_res > 0):
+            raise ValueError('Time resolution must be a positive integer.')
+        if isinstance(X, (tuple, list, )):
+            ndim = len(X)
+            if ndim not in [1, 2, 3]:
+                raise ValueError('Tuple should have either 1, 2 or 3 elements.')
+            for dim in X:
+                if not isinstance(dim, (int, float, )) & (dim > 0):
+                    raise ValueError('Dimension components must be positive scalar.')
+        else:
+            raise ValueError('Spatial dimensions must be given in a tuple.')
+        if ndim == 1:
+            self.depth, = X
+        elif ndim == 2:
+            self.length, self.width = X
+        else:
+            self.length, self.width, self.depth = X
+        if not isinstance(s_res, (int, )) & (s_res > 0):
+            raise ValueError('Spatial resolution must be a positive integer.')
+        args = [h, Ta, Tc, Tf, Qm]
+        if not all(isinstance(arg, (int, float, )) for arg in args):
+            raise ValueError('Please check the values of skin-specific'
+                             ' optional arguments.')
+        if SAR is not None and not isinstance(SAR, (np.ndarray, )):
+            raise ValueError('`SAR` should be given as a numpy.ndarray.')
+        if SAR is not None and SAR.shape.count(s_res) != ndim:
+            raise ValueError('`SAR` should have the number of dimensions'
+                             ' corresponding to the `len(X)` and with number'
+                             ' of elements per dimension corresponding to'
+                             ' `s_res`.')
+        if SAR is None:
+            SAR = np.zeros(s_res**ndim).reshape([s_res] * ndim)
+        self.T = T
+        self.t_res = t_res
+        self._create_time_domain()
+        self.ndim = ndim
+        self.s_res = s_res
+        self.h = h
+        self.Ta = Ta
+        self.Tc = Tc
+        self.Tf = Tf
+        self.Qm = Qm
+        self.SAR = SAR
+        self.k = 0.37  # thermal conductivity in W/m/°C
+        self.rho = 1109.  # skin density in kg/m^3
+        self.C = 3391.  # specific heat of skin in Ws/kg/°C
+        self.mb = 1.76e-6  # blood perfusion in m^3/kg/s = 106 mL/min/kg
 
+    def _create_time_domain(self):
+        """Initialize the time domain for the solver.
 
-def delta_temp_1d(t, N, pen_depth, k, rho, C, m_b, IPD, T_tr):
-    """Numerical solution of the 1-D bioheat equation by using the FFT
-    on a spatial coordinate.
+        Parameters
+        ----------
+        None
 
-    Parameters
-    ----------
-    t : numpy.ndarray
-        Simulation time.
-    N : int
-        Number of collocation points.
-    pen_depth : float
-        Energy penetration depth.
-    k : float
-        Thermal conductivity of the tissue-
-    rho : float
-        Tissue density.
-    C : float
-        Heat capacity of the tissue.
-    m_b : float
-        Volumetric blood perfusion.
-    IPD : float
-        Incident power density to the tissue surface.
-    T_tr : float
-        Transmission coefficient into the tisse.
+        Returns
+        -------
+        numpy.ndarray
+            Time domain.
+        """
+        t = np.linspace(0, self.T, num=self.t_res)
+        self.t = t
 
-    Returns
-    -------
-    numpy.ndarray
-        Temperature distribution in time and space.
-    """
-    dx = pen_depth / N
-    x = np.linspace(0, pen_depth, N)
-    kappa = 2 * pi * np.fft.fftfreq(N, d=dx)
-    SAR = IPD * T_tr / (rho * pen_depth) * np.exp(-x / pen_depth)
-    SAR_fft = np.fft.fft(SAR)
+    def _generate_lap_operator(self):
+        """Initialize the Laplace operator for the solver.
 
-    def rhs(T_fft_ri, t, kappa, k, rho, C, m_b, SAR_fft):
-        T_fft = T_fft_ri[:N] + (1j) * T_fft_ri[N:]
-        d_T_fft = (
-            - np.power(kappa, 2) * k * T_fft / (rho * C)
-            - rho * m_b * T_fft
-            + SAR_fft / C
-            )
-        return np.concatenate((d_T_fft.real, d_T_fft.imag)).astype(np.float64)
+        Parameters
+        ----------
+        None
 
-    # initial conditions - prior to radiofrequency exposure
-    T0 = np.zeros_like(x)
-    T0_fft = np.fft.fft(T0)
-    # recasting complex numbers to an array for easier handling in `scipy`
-    T0_fft_ri = np.concatenate((T0_fft.real, T0_fft.imag))
-    T_fft_ri = odeint(rhs, T0_fft_ri, t, args=(kappa, k, rho, C, m_b, SAR_fft))
-    T_fft = T_fft_ri[:, :N] + (1j) * T_fft_ri[:, N:]
-    deltaT = np.empty_like(T_fft)
-    for i in range(t.size):
-        deltaT[i, :] = np.fft.ifft(T_fft[i, :])
-    return deltaT.real
+        Returns
+        -------
+        None
+        """
+        if self.ndim == 1:
+            dz = self.depth / self.s_res
+            kz = 2 * pi * np.fft.fftfreq(self.s_res, d=dz)
+            self.lap = kz ** 2
+        elif self.ndim == 2:
+            dx = self.length / self.s_res
+            dy = self.width / self.s_res
+            kx = 2 * pi * np.fft.fftfreq(self.s_res, d=dx)
+            ky = 2 * pi * np.fft.fftfreq(self.s_res, d=dy)
+            KX, KY = np.meshgrid(kx, ky)
+            lap = KX ** 2 + KY ** 2
+            lapinv = np.zeros_like(lap)
+            lapinv[lap != 0] = 1. / lap[lap != 0]
+            DX = 1j * KX * lapinv
+            DY = 1j * KY * lapinv
+            self.lap = DX + DY
+        else:
+            dx = self.length / self.s_res
+            dy = self.width / self.s_res
+            dz = self.depth / self.s_res
+            kx = 2 * pi * np.fft.fftfreq(self.s_res, d=dx)
+            ky = 2 * pi * np.fft.fftfreq(self.s_res, d=dy)
+            kz = 2 * pi * np.fft.fftfreq(self.s_res, d=dz)
+            KX, KY, KZ = np.meshgrid(kx, ky, kz)
+            lap = KX ** 2 + KY ** 2 + KZ ** 2
+            lapinv = np.zeros_like(lap)
+            lapinv[lap != 0] = 1. / lap[lap != 0]
+            DX = 1j * KX * lapinv
+            DY = 1j * KY * lapinv
+            DZ = 1j * KZ * lapinv
+            self.lap = DX + DY + DZ
 
+    def solve(self, T0, **kwargs):
+        """Solve the bio-heat transfer equation.
 
-def temp_3d(t, N, area, pen_depth, k, rho, C, rho_b, C_b, m_b, h_0, T_a, T_c,
-            T_f, Q_m, SAR):
-    """Numerical solution of the 1-D bioheat equation by using the FFT
-    on spatial coordinates.
+        Parameters
+        ----------
+        T0 : numpy.ndarray
+            Initial conditions - temperature distribtuion over the
+            spatial domain at time t = 0. The shape of the array
+            should correspond to (`s_res`, `ndim`) where `ndim` is the
+            number of spatial dimensions, i.e., the size of the tuple
+            `X` defined in the constructor.
+        **kwargs : dict, optional
+            Additional keyword arguments for `scipy.integrate.odeint`
+            differential equation solver.
 
-    Parameters
-    ----------
-    t : numpy.ndarray
-        Simulation time.
-    N : tuple
-        Number of collocation points in x-, y- and z-direction.
-    area : tuple
-        Length and width of the exposure surface of a human tissue.
-    pen_depth : float
-        Energy penetration depth.
-    k : float
-        Thermal conductivity of a tissue.
-    rho : float
-        Tissue density.
-    C : float
-        Tissue heat capacity.
-    rho_b : float
-        Blood density.
-    C_b : float
-        Blood heat capacity.
-    m_b : float
-        Volumetric blood perfusion.
-    h_0 : float
-        Heat convection coefficient between the skin surface and air.
-    T_a : float
-        Arterial temperature.
-    T_c : float
-        Body core temperature.
-    T_f : float
-        Surrounding air temperature.
-    Q_m : float
-        Metabolic heat generation.
-    SAR : numpy.ndarray
-        3-D array of shape (`N[0]`, `N[1]`, `N[2]`) of specific
-        absorption rate values.
+        Returns
+        -------
+        None
+        """
+        if not isinstance(T0, (np.ndarray, )):
+            raise ValueError('`T0` must be a `numpy.ndarray`.')
+        if self.ndim != T0.ndim:
+            raise ValueError(f'`T0` should have {self.ndim}-dimensional.')
+        if ((T0.shape.count(T0.shape[0]) != self.ndim)
+            | (T0.shape[0] != self.s_res)):
+            raise ValueError(f'All spatial components should have {self.s_res}'
+                             ' elements.')
+        self.T0 = T0.ravel()
+        target_shape = [self.s_res] * self.ndim
+        if self.ndim == 1:
+            axes = (0, )
+        elif self.ndim == 2:
+            axes = (0, 1)
+        else:
+            axes = (0, 1, 2)
+        self._generate_lap_operator()
 
-    Returns
-    -------
-    numpy.ndarray
-        Temperature distribution in time and space.
-    """
-    Nx, Ny, Nz = N
-    X, Y = area
-    Z = pen_depth
-    dx = X / Nx
-    dy = Y / Ny
-    dz = Z / Nz
-    z = np.linspace(0, Z, Nz)
-    kx = 2 * pi * np.fft.fftfreq(Nx, d=dx)
-    ky = 2 * pi * np.fft.fftfreq(Ny, d=dy)
-    kz = 2 * pi * np.fft.fftfreq(Nz, d=dz)
-    KX, KY, KZ = np.meshgrid(kx, ky, kz)
-    lap = KX ** 2 + KY ** 2 + KZ ** 2
-    lapinv = np.zeros_like(lap)
-    lapinv[lap != 0] = 1. / lap[lap != 0]
-    DX = 1j * KX * lapinv
-    DY = 1j * KY * lapinv
-    DZ = 1j * KZ * lapinv
-    lap = DX + DY + DZ
+        def rhs(T, t):
+            T = T.reshape(*target_shape)
+            T_fft = np.fft.fftn(T, axes=axes)
+            lapT_fft = self.lap * T_fft
+            lapT = np.fft.ifftn(lapT_fft, axes=axes)
 
-    def rhs(T, t):
-        T = T.reshape(Nx, Ny, Nz)
-        T_fft = np.fft.fftn(T, axes=(0, 1, 2))
-        lapT_fft = - lap * T_fft
-        lapT = np.fft.ifftn(lapT_fft, axes=(0, 1, 2))
-
-        dTdt = (k * lapT
-                + rho_b ** 2 * m_b * C_b * (T_a - T)
-                + Q_m
-                + SAR * rho) / (rho * C)
-        return dTdt.real.ravel()
-
-    _T0 = init_temp(z, k, rho_b, C_b, m_b, h_0, T_a, T_c, T_f, Q_m)
-    T0 = np.ones((Nx, Ny, Nz)) * _T0
-    T0 = T0.ravel()
-    T = odeint(rhs, T0, t)
-    return T.reshape(-1, Nx, Ny, Nz)
+            dTdt = (self.k * lapT
+                    + rho_b * self.rho * self.mb * C_b * (self.Ta - T)
+                    + self.Qm
+                    + self.SAR * self.rho) / (self.rho * self.C)
+            return dTdt.real.ravel()
+        
+        T = odeint(func=rhs, y0=self.T0, t=self.t, **kwargs)
+        return T.reshape(-1, *target_shape)
