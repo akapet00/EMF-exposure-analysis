@@ -1,13 +1,21 @@
-"""Bioheat transfer equation solvers."""
+"""Bioheat transfer equation solver."""
 
 import numpy as np
-from scipy.integrate import odeint
+from scipy import integrate
 
 from .constants import pi
 
 
+supported_ode_solvers = ['solve_ivp', 'RK23', 'RK45', 'DOP853', 'Radau',
+                         'BDF', 'LSODA']
+
+
 class BHTE(object):
-    """Bio-heat transfer equation class."""
+    """Bio-heat transfer equation class. Solution of the equation is
+    carried out by using pseudo-spectral time domain method. Spatial
+    gradients are evaluated in spectral domain via Fourier transform.
+    Time derivatives are handled via standard ODE solvers as
+    implemented in `scipy.integrate` module."""
 
     def __init__(self, sim_time, t_res, X, s_res, h=10., Ta=37., Tc=37.,
                  Tf=25., Qm=33800., SAR=None):
@@ -93,13 +101,141 @@ class BHTE(object):
         self.Tf = Tf
         self.Qm = Qm
         self.SAR = SAR
-        self.k = 0.37  # thermal conductivity of skin in W/m/°C
-        self.rho = 1109.  # skin density in kg/m^3
-        self.C = 3391.  # specific heat of skin in Ws/kg/°C
-        self.mb = 1.76e-6  # blood perfusion in m^3/kg/s = 106 mL/min/kg
+        self._k = 0.37  # thermal conductivity of skin in W/m/°C
+        self._rho = 1109.  # skin density in kg/m^3
+        self._C = 3391.  # specific heat of skin in Ws/kg/°C
+        self._mb = 1.76e-6  # blood perfusion in m^3/kg/s = 106 mL/min/kg
         self.kb = 0.52  # thermal conductivity of blood in W/m/°C
         self.rhob = 1000.  # blood density in kg/m^3
         self.Cb = 3617.  # specific heat of blood in J/kg/°C
+
+    @property
+    def k(self):
+        """Get the thermal conductivity of the skin.
+        
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        float
+            Thermal conductivity of the skin in W/m/°C.
+        """
+        return self._k
+
+    @k.setter
+    def k(self, value):
+        """Change predefined thermal conductivity of the skin.
+        
+        Parameters
+        ----------
+        k_value : scalar
+            Thermal conductivity of the skin in W/m/°C.
+
+        Returns
+        -------
+        None
+        """
+        if not isinstance(value, (int, float, )):
+            raise ValueError('Thermal conductivity must be a number.')
+        self._k = value
+
+    @property
+    def rho(self):
+        """Get the skin density.
+        
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        float
+            Skin density in kg/m^3.
+        """
+        return self._rho
+
+    @rho.setter
+    def rho(self, value):
+        """Change predefined skin density.
+        
+        Parameters
+        ----------
+        value : scalar
+            Skin density in kg/m^3.
+
+        Returns
+        -------
+        None
+        """
+        if not isinstance(value, (int, float, )):
+            raise ValueError('Skin density must be a number.')
+        self._rho = value
+
+    @property
+    def C(self):
+        """Get the specific heat of skin.
+        
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        float
+            Specific heat of skin in Ws/kg/°C.
+        """
+        return self._C
+
+    @C.setter
+    def C(self, value):
+        """Change predefined specific heat of skin.
+        
+        Parameters
+        ----------
+        value : scalar
+            Specific heat of skin in Ws/kg/°C.
+
+        Returns
+        -------
+        None
+        """
+        if not isinstance(value, (int, float, )):
+            raise ValueError('Specific heat of skin must be a number.')
+        self._C = value
+    
+    @property
+    def mb(self):
+        """Get the blood perfusion.
+        
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        float
+            Volumetric blood perfusion in m^3/kg/s.
+        """
+        return self._mb
+
+    @mb.setter
+    def mb(self, value):
+        """Change predefined blood perfusion.
+        
+        Parameters
+        ----------
+        value : scalar
+            Volumetric blood perfusion in m^3/kg/s.
+
+        Returns
+        -------
+        None
+        """
+        if not isinstance(value, (int, float, )):
+            raise ValueError('Volumetric blood perfusion must be a number.')
+        self._mb = value
 
     def _create_time_domain(self):
         """Initialize the time domain for the solver.
@@ -159,7 +295,7 @@ class BHTE(object):
             DZ = 1j * KZ * lapinv
             self.lap = DX + DY + DZ
 
-    def solve(self, T0, **kwargs):
+    def solve(self, T0, solver='legacy', **kwargs):
         """Solve the bio-heat transfer equation.
 
         Parameters
@@ -170,13 +306,18 @@ class BHTE(object):
             should correspond to (`s_res`, `ndim`) where `ndim` is the
             number of spatial dimensions, i.e., the size of the tuple
             `X` defined in the constructor.
+        solver : string, optional
+            Type of initial value problem solver for ODE systems
+            provided by `scipy.integrate` module.
         **kwargs : dict, optional
-            Additional keyword arguments for `scipy.integrate.odeint`
-            differential equation solver.
+            Additional keyword arguments for the initial value problem
+            ODE systems solver.
 
         Returns
         -------
-        None
+        numpy.ndarray
+            Temperature distribution in time (first axis) and space
+            (remaining axes).
         """
         if not isinstance(T0, (np.ndarray, )):
             raise ValueError('`T0` must be a `numpy.ndarray`.')
@@ -186,6 +327,14 @@ class BHTE(object):
             | (T0.shape[0] != self.s_res)):
             raise ValueError(f'All spatial components should have {self.s_res}'
                              ' elements.')
+        if (solver != 'legacy') and (solver not in supported_ode_solvers):
+            print(f'Solver {solver} is not supported. Falling back to default.')
+            solver = 'legacy'
+            solver_fn = integrate.odeint
+        elif solver == 'legacy':
+            solver_fn = integrate.odeint
+        else:
+            solver_fn = integrate.solve_ivp
         self.T0 = T0.ravel()
         target_shape = [self.s_res] * self.ndim
         if self.ndim == 1:
@@ -195,17 +344,32 @@ class BHTE(object):
         else:
             axes = (0, 1, 2)
 
-        def rhs(T, t):
-            T = T.reshape(*target_shape)
-            T_fft = np.fft.fftn(T, axes=axes)
-            lapT_fft = self.lap * T_fft
-            lapT = np.fft.ifftn(lapT_fft, axes=axes).real
+        if solver == 'legacy':
+            def rhs(y, t):
+                y = y.reshape(*target_shape)
+                y_fft = np.fft.fftn(y, axes=axes)
+                lap_y_fft = self.lap * y_fft
+                lap_y = np.fft.ifftn(lap_y_fft, axes=axes).real
+                dydt = (self._k * lap_y
+                        + self.rhob * self._mb * self.Cb * (self.Ta - y)
+                        + self.Qm
+                        + self.SAR * self._rho) / (self._rho * self._C)
+                return dydt.ravel()
+            
+            sol = solver_fn(rhs, y0=self.T0, t=self.t, **kwargs)
+            return sol.reshape(-1, *target_shape)
+        else:
+            def rhs(t, y):
+                y = y.reshape(*target_shape)
+                y_fft = np.fft.fftn(y, axes=axes)
+                lap_y_fft = self.lap * y_fft
+                lap_y = np.fft.ifftn(lap_y_fft, axes=axes).real
+                dydt = (self._k * lap_y
+                        + self.rhob * self._mb * self.Cb * (self.Ta - y)
+                        + self.Qm
+                        + self.SAR * self._rho) / (self._rho * self._C)
+                return dydt.ravel()
 
-            dTdt = (self.k * lapT
-                    + self.rhob * self.mb * self.Cb * (self.Ta - T)
-                    + self.Qm
-                    + self.SAR * self.rho) / (self.rho * self.C)
-            return dTdt.ravel()
-        
-        T = odeint(func=rhs, y0=self.T0, t=self.t, **kwargs)
-        return T.reshape(-1, *target_shape)
+            sol = solver_fn(rhs, y0=self.T0, t_span=(self.t[0], self.t[-1]),
+                            t_eval=self.t, method=solver, **kwargs)
+            return np.moveaxis(sol.y.reshape(*target_shape, -1), -1, 0)
