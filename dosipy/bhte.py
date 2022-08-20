@@ -109,6 +109,13 @@ class BHTE(object):
         self.rhob = 1000.  # blood density in kg/m^3
         self.Cb = 3617.  # specific heat of blood in J/kg/°C
 
+    def __str__(self):
+        bhte_lhs = '(rho * C) * dTdt'
+        bhte_rhs = 'k * grad(y) + (rhob * mb * Cb) * (Ta - T) + Qm + rho * SAR'
+        addon_info = self.__repr__()
+        output = addon_info + '\n\n' + bhte_lhs + ' = ' + bhte_rhs
+        return output
+
     @property
     def k(self):
         """Get the thermal conductivity of the skin.
@@ -119,7 +126,7 @@ class BHTE(object):
 
         Returns
         -------
-        float
+        number or numpy.ndarray
             Thermal conductivity of the skin in W/m/°C.
         """
         return self._k
@@ -130,15 +137,21 @@ class BHTE(object):
         
         Parameters
         ----------
-        k_value : scalar
+        k_value : number or numpy.ndarray
             Thermal conductivity of the skin in W/m/°C.
 
         Returns
         -------
         None
         """
-        if not isinstance(value, (int, float, )):
-            raise ValueError('Thermal conductivity must be a number.')
+        if not isinstance(value, (int, float, np.ndarray)):
+            raise ValueError('Thermal conductivity must be numerical value(s).')
+        if (isinstance(value, (np.ndarray, ))
+            and (value.shape.count(self.s_res) != self.ndim)):
+            raise ValueError('`k` should have the number of dimensions'
+                             ' corresponding to the `len(X)` and with number'
+                             ' of elements per dimension corresponding to'
+                             ' `s_res`.')
         self._k = value
 
     @property
@@ -151,7 +164,7 @@ class BHTE(object):
 
         Returns
         -------
-        float
+        number of numpy.ndarray
             Skin density in kg/m^3.
         """
         return self._rho
@@ -162,15 +175,21 @@ class BHTE(object):
         
         Parameters
         ----------
-        value : scalar
+        value : number or numpy.ndarray
             Skin density in kg/m^3.
 
         Returns
         -------
         None
         """
-        if not isinstance(value, (int, float, )):
-            raise ValueError('Skin density must be a number.')
+        if not isinstance(value, (int, float, np.ndarray)):
+            raise ValueError('Thermal conductivity must be numerical value(s).')
+        if (isinstance(value, (np.ndarray, ))
+            and (value.shape.count(self.s_res) != self.ndim)):
+            raise ValueError('`k` should have the number of dimensions'
+                             ' corresponding to the `len(X)` and with number'
+                             ' of elements per dimension corresponding to'
+                             ' `s_res`.')
         self._rho = value
 
     @property
@@ -183,7 +202,7 @@ class BHTE(object):
 
         Returns
         -------
-        float
+        number or numpy.ndarray
             Specific heat of skin in Ws/kg/°C.
         """
         return self._C
@@ -194,15 +213,21 @@ class BHTE(object):
         
         Parameters
         ----------
-        value : scalar
+        value : number or numpy.ndarray
             Specific heat of skin in Ws/kg/°C.
 
         Returns
         -------
         None
         """
-        if not isinstance(value, (int, float, )):
-            raise ValueError('Specific heat of skin must be a number.')
+        if not isinstance(value, (int, float, np.ndarray)):
+            raise ValueError('Thermal conductivity must be numerical value(s).')
+        if (isinstance(value, (np.ndarray, ))
+            and (value.shape.count(self.s_res) != self.ndim)):
+            raise ValueError('`k` should have the number of dimensions'
+                             ' corresponding to the `len(X)` and with number'
+                             ' of elements per dimension corresponding to'
+                             ' `s_res`.')
         self._C = value
     
     @property
@@ -215,7 +240,7 @@ class BHTE(object):
 
         Returns
         -------
-        float
+        numpy.ndarray
             Volumetric blood perfusion in m^3/kg/s.
         """
         return self._mb
@@ -226,15 +251,21 @@ class BHTE(object):
         
         Parameters
         ----------
-        value : scalar
+        value : number or numpy.ndarray
             Volumetric blood perfusion in m^3/kg/s.
 
         Returns
         -------
         None
         """
-        if not isinstance(value, (int, float, )):
-            raise ValueError('Volumetric blood perfusion must be a number.')
+        if not isinstance(value, (int, float, np.ndarray)):
+            raise ValueError('Thermal conductivity must be numerical value(s).')
+        if (isinstance(value, (np.ndarray, ))
+            and (value.shape.count(self.s_res) != self.ndim)):
+            raise ValueError('`k` should have the number of dimensions'
+                             ' corresponding to the `len(X)` and with number'
+                             ' of elements per dimension corresponding to'
+                             ' `s_res`.')
         self._mb = value
 
     def _create_time_domain(self):
@@ -300,12 +331,14 @@ class BHTE(object):
 
         Parameters
         ----------
-        T0 : numpy.ndarray
+        T0 : number or numpy.ndarray
             Initial conditions - temperature distribtuion over the
             spatial domain at time t = 0. The shape of the array
             should correspond to (`s_res`, `ndim`) where `ndim` is the
             number of spatial dimensions, i.e., the size of the tuple
-            `X` defined in the constructor.
+            `X` defined in the constructor. If initial conditions are
+            set as a scalar value, it is assumed the entire spatial
+            domain is at the same temperature.
         solver : string, optional
             Type of initial value problem solver for ODE systems
             provided by `scipy.integrate` module.
@@ -319,14 +352,17 @@ class BHTE(object):
             Temperature distribution in time (first axis) and space
             (remaining axes).
         """
-        if not isinstance(T0, (np.ndarray, )):
-            raise ValueError('`T0` must be a `numpy.ndarray`.')
-        if self.ndim != T0.ndim:
-            raise ValueError(f'`T0` should have {self.ndim}-dimensional.')
-        if ((T0.shape.count(T0.shape[0]) != self.ndim)
-            | (T0.shape[0] != self.s_res)):
-            raise ValueError(f'All spatial components should have {self.s_res}'
-                             ' elements.')
+        if isinstance(T0, (np.ndarray, )):
+            if self.ndim != T0.ndim:
+                raise ValueError(f'`T0` should have {self.ndim}-dimensional.')
+            if ((T0.shape.count(T0.shape[0]) != self.ndim)
+                | (T0.shape[0] != self.s_res)):
+                raise ValueError('All spatial components should have'
+                                 f'{self.s_res} elements.')
+        elif isinstance(T0, (int, float, )):
+            T0 = np.ones_like(self.SAR) * T0
+        else:
+            raise ValueError('`T0` must be either a number or an array.')
         if (solver != 'legacy') and (solver not in supported_ode_solvers):
             print(f'Solver {solver} is not supported. Falling back to default.')
             solver = 'legacy'
@@ -335,7 +371,7 @@ class BHTE(object):
             solver_fn = integrate.odeint
         else:
             solver_fn = integrate.solve_ivp
-        self.T0 = T0.ravel()
+        self.T0 = T0
         target_shape = [self.s_res] * self.ndim
         if self.ndim == 1:
             axes = (0, )
@@ -356,7 +392,7 @@ class BHTE(object):
                         + self.SAR * self._rho) / (self._rho * self._C)
                 return dydt.ravel()
             
-            sol = solver_fn(rhs, y0=self.T0, t=self.t, **kwargs)
+            sol = solver_fn(rhs, y0=self.T0.ravel(), t=self.t, **kwargs)
             return sol.reshape(-1, *target_shape)
         else:
             def rhs(t, y):
@@ -370,6 +406,7 @@ class BHTE(object):
                         + self.SAR * self._rho) / (self._rho * self._C)
                 return dydt.ravel()
 
-            sol = solver_fn(rhs, y0=self.T0, t_span=(self.t[0], self.t[-1]),
-                            t_eval=self.t, method=solver, **kwargs)
+            sol = solver_fn(rhs, y0=self.T0.ravel(),
+                            t_span=(self.t[0], self.t[-1]), t_eval=self.t,
+                            method=solver, **kwargs)
             return np.moveaxis(sol.y.reshape(*target_shape, -1), -1, 0)
