@@ -110,10 +110,31 @@ class BHTE(object):
         self.Cb = 3617.  # specific heat of blood in J/kg/°C
 
     def __str__(self):
+        addon_info = self.__repr__()
         bhte_lhs = '(rho * C) * dTdt'
         bhte_rhs = 'k * grad(y) + (rhob * mb * Cb) * (Ta - T) + Qm + rho * SAR'
-        addon_info = self.__repr__()
-        output = addon_info + '\n\n' + bhte_lhs + ' = ' + bhte_rhs
+        if self.ndim == 1:
+            dim = 'z'
+        elif self.ndim == 2:
+            dim = 'x, y'
+        else:
+            dim = 'x, y, z'
+        parameters = (f'h = {self.h}\n'
+                      f'Ta = {self.Ta}\n'
+                      f'Tc = {self.Tc}\n'
+                      f'Tf = {self.Tf}\n'
+                      f'Qm = {self.Qm}\n'
+                      f'SAR({dim}) = {self.SAR}\n'
+                      f'k({dim}) = {self._k}\n'
+                      f'rho({dim}) = {self._rho}\n'
+                      f'C({dim}) = {self._C}\n'
+                      f'mb({dim}) = {self._mb}\n'
+                      f'kb = {self.kb}\n'
+                      f'rhob = {self.rhob}\n'
+                      f'Cb = {self.Cb}\n')
+        output = ('repr\n----\n' + addon_info + '\n\n'
+                  + 'equation\n--------\n' + bhte_lhs + ' = ' + bhte_rhs + '\n\n' 
+                  + 'parameters\n----------\n' + parameters)
         return output
 
     @property
@@ -342,7 +363,7 @@ class BHTE(object):
         solver : string, optional
             Type of initial value problem solver for ODE systems
             provided by `scipy.integrate` module.
-        **kwargs : dict, optional
+        kwargs : dict, optional
             Additional keyword arguments for the initial value problem
             ODE systems solver.
 
