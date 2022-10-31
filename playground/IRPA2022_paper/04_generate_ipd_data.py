@@ -99,7 +99,7 @@ def compute_sPDn(f, h, r, degree, N=20):
 
 
 hs = np.array([2, 5, 10, 50, 150]) / -1000.  # separation distances
-rs = np.array([0.05, 0.07, 0.09, 0.12, 0.15])  # radii
+rs = np.array([0.05, 0.07, 0.1, 0.15])  # radii
 degree = 11  # integration degree
 
 f = 6
