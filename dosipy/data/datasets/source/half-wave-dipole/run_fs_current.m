@@ -17,7 +17,7 @@ W = [0.3478548451374538, 0.6521451548625461, ...
 
 % variables
 frequencies = [2.4, 3., 3.5, 5., 6., 10., 15., 20., 26., ...
-                 30., 40., 60., 80., 100.];      %  frequencies in GHz
+                 30., 40., 60., 80., 90., 100.]; %  frequencies in GHz
 dipole_scalers = 2;                              %  dipole size scaler
 
 % simulation

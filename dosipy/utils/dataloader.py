@@ -10,7 +10,7 @@ SUPPORTED_TISSUES = ['air', 'blood', 'blood_vessel', 'body_fluid',
                      'cerebro_spinal_fluid', 'dura', 'fat', 'muscle',
                      'skin_dry', 'skin_wet']
 SUPPORTED_FREQS = [2.4, 3., 3.5, 5., 6., 10., 15., 20., 26., 30., 40., 60.,
-                   80., 100.]
+                   80., 90., 100.]
 
 
 def load_tissue_diel_properties(tissue, f):
