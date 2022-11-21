@@ -9,4 +9,4 @@ In this work, we propose a novel procedure for the spatial averaging of the abso
 
 ## Cite
 
-Lojić Kapetanović A, Sacco G, Poljak D, Zhadobov M. Novel procedure for spatial averaging of absorbed power density on realistic body models at millimeter waves. In Proceedings of BioEM 2022, 2022, p. 242-248.
+Lojić Kapetanović A, Sacco G, Poljak D, Zhadobov M. Novel procedure for spatial averaging of absorbed power density on realistic body models at millimeter waves. In Proceedings of BioEM 2022, 2022, pp. 242-248.

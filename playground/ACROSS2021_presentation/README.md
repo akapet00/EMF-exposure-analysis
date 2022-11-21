@@ -9,4 +9,4 @@ This talk overviews a numerical technique for evaluation of the surface integral
 
 ## Cite
 
-Lojić Kapetanović A. Accurate numerical approach to solving the surface integral of a vector field [Slides]. 2022 6-th Int'l Workshop on Advanced Cooperative Systems, Zagreb, Croatia.
+Lojić Kapetanović A. Accurate numerical approach to solving the surface integral of a vector field [Presentation]. 2022 6-th Int'l Workshop on Advanced Cooperative Systems, Zagreb, Croatia.
