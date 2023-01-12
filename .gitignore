@@ -140,4 +140,7 @@ simulations/*.txt
 playground/*/data/*.txt
 playground/*/data/*.h5
 playground/*/data/*.mat
+playground/*/data/*/*.txt
+playground/*/data/*/*.h5
+playground/*/data/*/*.mat
 !playground/SoftCOM2022/data/*.mat
