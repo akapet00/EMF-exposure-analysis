@@ -5,7 +5,7 @@ import open3d as o3d
 import pandas as pd
 
 
-def load_data(antenna, distance):
+def load_data(antenna, distance, drop_idx=None):
     """Load coordinates and electromagnetic field components-
 
     Parameters
@@ -14,6 +14,8 @@ def load_data(antenna, distance):
         Which antenna.
     distance : int
         Antenna-to-ear separation distance in mm.
+    drop_idx : int, optional
+        Drop specific index in some edge cases.
 
     Returns
     -------
@@ -23,19 +25,17 @@ def load_data(antenna, distance):
         magnetic field, respectively.
     """
     # data path
-    path = os.path.join('data', 'emf_surface_distribution')
+    path = os.path.join('data', 'raw')
     
-    # coordinates and E field components
+    # E field components
     ExRe_df = pd.read_csv(
         os.path.join(path, f'{antenna}_Re_Ex_d{distance}mm.txt'),
         sep='\s+', comment='%', header=None, names=['x', 'y', 'z', 'value']
     )
-    xyz = ExRe_df.loc[:, ['x', 'y', 'z']]
     ExIm_df = pd.read_csv(
         os.path.join(path, f'{antenna}_Im_Ex_d{distance}mm.txt'),
         sep='\s+', comment='%', header=None, usecols=[3], names=['value']
     )
-    Ex = ExRe_df['value'] + 1j * ExIm_df['value']
     EyRe_df = pd.read_csv(
         os.path.join(path, f'{antenna}_Re_Ey_d{distance}mm.txt'),
         sep='\s+', comment='%', header=None, usecols=[3], names=['value']
@@ -44,7 +44,6 @@ def load_data(antenna, distance):
         os.path.join(path, f'{antenna}_Im_Ey_d{distance}mm.txt'),
         sep='\s+', comment='%', header=None, usecols=[3], names=['value']
     )
-    Ey = EyRe_df['value'] + 1j * EyIm_df['value']
     EzRe_df = pd.read_csv(
         os.path.join(path, f'{antenna}_Re_Ez_d{distance}mm.txt'),
         sep='\s+', comment='%', header=None, usecols=[3], names=['value']
@@ -53,7 +52,6 @@ def load_data(antenna, distance):
         os.path.join(path, f'{antenna}_Im_Ez_d{distance}mm.txt'),
         sep='\s+', comment='%', header=None, usecols=[3], names=['value']
     )
-    Ez = EzRe_df['value'] + 1j * EzIm_df['value']
     
     # H field components
     HxRe_df = pd.read_csv(
@@ -64,7 +62,6 @@ def load_data(antenna, distance):
         os.path.join(path, f'{antenna}_Im_Hx_d{distance}mm.txt'),
         sep='\s+', comment='%', header=None, usecols=[3], names=['value']
     )
-    Hx = HxRe_df['value'] + 1j * HxIm_df['value']
     HyRe_df = pd.read_csv(
         os.path.join(path, f'{antenna}_Re_Hy_d{distance}mm.txt'),
         sep='\s+', comment='%', header=None, usecols=[3], names=['value']
@@ -73,7 +70,6 @@ def load_data(antenna, distance):
         os.path.join(path, f'{antenna}_Im_Hy_d{distance}mm.txt'),
         sep='\s+', comment='%', header=None, usecols=[3], names=['value']
     )
-    Hy = HyRe_df['value'] + 1j * HyIm_df['value']
     HzRe_df = pd.read_csv(
         os.path.join(path, f'{antenna}_Re_Hz_d{distance}mm.txt'),
         sep='\s+', comment='%', header=None, usecols=[3], names=['value']
@@ -82,14 +78,53 @@ def load_data(antenna, distance):
         os.path.join(path, f'{antenna}_Im_Hz_d{distance}mm.txt'),
         sep='\s+', comment='%', header=None, usecols=[3], names=['value']
     )
+    
+    # coordinates
+    xyz = ExRe_df.loc[:, ['x', 'y', 'z']]
+    
+    if drop_idx:
+        if (antenna == 'DipoleVertical') and (distance == 5):
+            xyz = xyz.drop(index=drop_idx).reset_index(drop=True)
+            ExRe_df = ExRe_df.drop(index=drop_idx).reset_index(drop=True)
+            ExIm_df = ExIm_df.drop(index=drop_idx).reset_index(drop=True)
+            EyRe_df = EyRe_df.drop(index=drop_idx).reset_index(drop=True)
+            EzRe_df = EzRe_df.drop(index=drop_idx).reset_index(drop=True)
+            EzIm_df = EzIm_df.drop(index=drop_idx).reset_index(drop=True)
+            HxRe_df = HxRe_df.drop(index=drop_idx).reset_index(drop=True)
+            HxIm_df = HxIm_df.drop(index=drop_idx).reset_index(drop=True)
+            HyRe_df = HyRe_df.drop(index=drop_idx).reset_index(drop=True)
+            HyIm_df = HyIm_df.drop(index=drop_idx).reset_index(drop=True)
+            HzRe_df = HzRe_df.drop(index=drop_idx).reset_index(drop=True)
+            HzIm_df = HzIm_df.drop(index=drop_idx).reset_index(drop=True)
+        elif (antenna == 'DipoleHorizontal') and (distance == 15):
+            xyz = xyz.drop(index=drop_idx).reset_index(drop=True)
+            ExRe_df = ExRe_df.drop(index=drop_idx).reset_index(drop=True)
+            ExIm_df = ExIm_df.drop(index=drop_idx).reset_index(drop=True)
+            EyRe_df = EyRe_df.drop(index=drop_idx).reset_index(drop=True)
+            EyIm_df = EyIm_df.drop(index=drop_idx).reset_index(drop=True)
+            EzRe_df = EzRe_df.drop(index=drop_idx).reset_index(drop=True)
+            EzIm_df = EzIm_df.drop(index=drop_idx).reset_index(drop=True)
+            HxIm_df = HxIm_df.drop(index=drop_idx).reset_index(drop=True)
+            HyRe_df = HyRe_df.drop(index=drop_idx).reset_index(drop=True)
+            HyIm_df = HyIm_df.drop(index=drop_idx).reset_index(drop=True)
+            HzRe_df = HzRe_df.drop(index=drop_idx).reset_index(drop=True)
+            HzIm_df = HzIm_df.drop(index=drop_idx).reset_index(drop=True)
+            
+    # assemble all
+    Ex = ExRe_df['value'] + 1j * ExIm_df['value']
+    Ey = EyRe_df['value'] + 1j * EyIm_df['value']
+    Ez = EzRe_df['value'] + 1j * EzIm_df['value']
+    Hx = HxRe_df['value'] + 1j * HxIm_df['value']
+    Hy = HyRe_df['value'] + 1j * HyIm_df['value']
     Hz = HzRe_df['value'] + 1j * HzIm_df['value']
     
     return xyz, (Ex, Ey, Ez), (Hx, Hy, Hz)
 
-def poynting_vector(E, H):
-    """Return power density given x-, y-, and z-component of electric
-    and magnetic field. It assumes that the given components are peak
-    values and all components of the power dansity are scaled by 1/2.
+
+def compute_power_density(E, H):
+    """Return the complex power density vector from the electric and
+    magnetic field. This function assumes that field components are
+    given as peak values.
 
     Parameters
     ----------
@@ -107,40 +142,6 @@ def poynting_vector(E, H):
     Sy = 0.5 * (E[2] * H[0].conjugate() - E[0] * H[2].conjugate())
     Sz = 0.5 * (E[0] * H[1].conjugate() - E[1] * H[0].conjugate())
     return Sx, Sy, Sz
-
-
-def get_imcolors(geometries, config, point_show_normal=False):
-    """Return colors from given 3-D point cloud objects.
-
-    Parameters
-    ----------
-    geometries : list
-        List of 3-D point cloud models defined as
-        `open3d.geometry.PointCloud` objects.
-    config : dict
-        View controls for visualizer.
-    point_show_normal : bool
-        Show normalized normal vectors as arrows at each point.
-
-    Returns
-    -------
-    open3d.geometry.Image
-        Captured image RGB.
-    """
-    vis = o3d.visualization.Visualizer()
-    vis.create_window(visible=True)
-    for geometry in geometries:
-        vis.add_geometry(geometry)
-    vis.update_renderer()
-    vis.get_view_control().set_zoom(config['zoom'])
-    vis.get_view_control().set_front(config['front'])
-    vis.get_view_control().set_lookat(config['lookat'])
-    vis.get_view_control().set_up(config['up'])
-    vis.get_render_option().point_show_normal = point_show_normal
-    vis.poll_events()
-    color = vis.capture_screen_float_buffer()
-    vis.destroy_window()
-    return color
 
 
 def estimate_normals(xyz, take_every=1, knn=30, fast=True):
