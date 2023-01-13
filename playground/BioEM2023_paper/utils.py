@@ -1,61 +1,112 @@
+import os
+
 import numpy as np
 import open3d as o3d
+import pandas as pd
 
 
-def clean_df(df):
-    """Remove the points that correspond to the external surface of the
-    Simulia/CST simulation domain.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        Raw output Simulia/CST data.
-
-    Returns
-    -------
-    pandas.DataFrame
-        Electric and magnetic field components only at the ear surface.
-    """
-    df = df[(df['x [mm]'] != df['x [mm]'].min())
-            & (df['x [mm]'] != df['x [mm]'].max())
-            & (df['y [mm]'] != df['y [mm]'].min())
-            & (df['y [mm]'] != df['y [mm]'].max())
-            & (df['z [mm]'] != df['z [mm]'].min())
-            & (df['z [mm]'] != df['z [mm]'].max())]
-    df.reset_index(drop=True, inplace=True)
-    return df
-
-
-def export_pcd(df, area=False):
-    """Convert the clean dataframe to point cloud.
+def load_data(antenna, distance):
+    """Load coordinates and electromagnetic field components-
 
     Parameters
     ----------
-    df : pandas.DataFrame
-        Clean version of the dataframe consisting the Simulia/CST
-        output data.
-    area : Bool, optional
-        If True, the output will have area of the finite element
-        corresponding to the specific point.
+    antenna : str
+        Which antenna.
+    distance : int
+        Antenna-to-ear separation distance in mm.
 
     Returns
     -------
-    numpy.ndarray
-        Either array of shape (n, 3) where each column corresponds to
-        x-, y-, and z-coordinates of the ear model, or array of shape
-        (n, 4) where additional column corresponds to the area of the
-        finite element corresponding to the specific point.
+    tuple
+        Tree element tuple contains dataframe with coordinates, and two
+        series with x-, y-, and z-component of the electric and
+        magnetic field, respectively.
     """
-    if area:
-        pcd = np.c_[df['x [mm]'].to_numpy(),
-                    df['y [mm]'].to_numpy(),
-                    df['z [mm]'].to_numpy(),
-                    df['area [mm^2]'].to_numpy()]
-    else:
-        pcd = np.c_[df['x [mm]'].to_numpy(),
-                    df['y [mm]'].to_numpy(),
-                    df['z [mm]'].to_numpy()]
-    return pcd
+    # data path
+    path = os.path.join('data', 'emf_surface_distribution')
+    
+    # coordinates and E field components
+    ExRe_df = pd.read_csv(
+        os.path.join(path, f'{antenna}_Re_Ex_d{distance}mm.txt'),
+        sep='\s+', comment='%', header=None, names=['x', 'y', 'z', 'value']
+    )
+    xyz = ExRe_df.loc[:, ['x', 'y', 'z']]
+    ExIm_df = pd.read_csv(
+        os.path.join(path, f'{antenna}_Im_Ex_d{distance}mm.txt'),
+        sep='\s+', comment='%', header=None, usecols=[3], names=['value']
+    )
+    Ex = ExRe_df['value'] + 1j * ExIm_df['value']
+    EyRe_df = pd.read_csv(
+        os.path.join(path, f'{antenna}_Re_Ey_d{distance}mm.txt'),
+        sep='\s+', comment='%', header=None, usecols=[3], names=['value']
+    )
+    EyIm_df = pd.read_csv(
+        os.path.join(path, f'{antenna}_Im_Ey_d{distance}mm.txt'),
+        sep='\s+', comment='%', header=None, usecols=[3], names=['value']
+    )
+    Ey = EyRe_df['value'] + 1j * EyIm_df['value']
+    EzRe_df = pd.read_csv(
+        os.path.join(path, f'{antenna}_Re_Ez_d{distance}mm.txt'),
+        sep='\s+', comment='%', header=None, usecols=[3], names=['value']
+    )
+    EzIm_df = pd.read_csv(
+        os.path.join(path, f'{antenna}_Im_Ez_d{distance}mm.txt'),
+        sep='\s+', comment='%', header=None, usecols=[3], names=['value']
+    )
+    Ez = EzRe_df['value'] + 1j * EzIm_df['value']
+    
+    # H field components
+    HxRe_df = pd.read_csv(
+        os.path.join(path, f'{antenna}_Re_Hx_d{distance}mm.txt'),
+        sep='\s+', comment='%', header=None, usecols=[3], names=['value']
+    )
+    HxIm_df = pd.read_csv(
+        os.path.join(path, f'{antenna}_Im_Hx_d{distance}mm.txt'),
+        sep='\s+', comment='%', header=None, usecols=[3], names=['value']
+    )
+    Hx = HxRe_df['value'] + 1j * HxIm_df['value']
+    HyRe_df = pd.read_csv(
+        os.path.join(path, f'{antenna}_Re_Hy_d{distance}mm.txt'),
+        sep='\s+', comment='%', header=None, usecols=[3], names=['value']
+    )
+    HyIm_df = pd.read_csv(
+        os.path.join(path, f'{antenna}_Im_Hy_d{distance}mm.txt'),
+        sep='\s+', comment='%', header=None, usecols=[3], names=['value']
+    )
+    Hy = HyRe_df['value'] + 1j * HyIm_df['value']
+    HzRe_df = pd.read_csv(
+        os.path.join(path, f'{antenna}_Re_Hz_d{distance}mm.txt'),
+        sep='\s+', comment='%', header=None, usecols=[3], names=['value']
+    )
+    HzIm_df = pd.read_csv(
+        os.path.join(path, f'{antenna}_Im_Hz_d{distance}mm.txt'),
+        sep='\s+', comment='%', header=None, usecols=[3], names=['value']
+    )
+    Hz = HzRe_df['value'] + 1j * HzIm_df['value']
+    
+    return xyz, (Ex, Ey, Ez), (Hx, Hy, Hz)
+
+def poynting_vector(E, H):
+    """Return power density given x-, y-, and z-component of electric
+    and magnetic field. It assumes that the given components are peak
+    values and all components of the power dansity are scaled by 1/2.
+
+    Parameters
+    ----------
+    E : tuple
+        3 arrays for 3 components of the electric field vector.
+    H : tuple
+        3 arrays for 3 components of the magnetic field vector.
+
+    Returns
+    -------
+    tuple
+        Containg 3 arrays for 3 components of the Poynting vector.
+    """
+    Sx = 0.5 * (E[1] * H[2].conjugate() - E[2] * H[1].conjugate())
+    Sy = 0.5 * (E[2] * H[0].conjugate() - E[0] * H[2].conjugate())
+    Sz = 0.5 * (E[0] * H[1].conjugate() - E[1] * H[0].conjugate())
+    return Sx, Sy, Sz
 
 
 def get_imcolors(geometries, config, point_show_normal=False):
@@ -90,56 +141,6 @@ def get_imcolors(geometries, config, point_show_normal=False):
     color = vis.capture_screen_float_buffer()
     vis.destroy_window()
     return color
-
-
-def export_fields(df):
-    """Convert the clean dataframe to array of electromagnetic field
-    components.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        Clean version of the dataframe consisting the Simulia/CST
-        output data.
-
-    Returns
-    -------
-    tuple
-        First element of the tuple holds the 3 arrays for 3 components
-        of the electric field vector, while the second element holds
-        the 3 arrays each corresponding the the 3 components of the
-        magnetic field vector.
-    """
-    Ex = df['ExRe [V/m]'].to_numpy() + 1j * df['ExIm [V/m]'].to_numpy()
-    Ey = df['EyRe [V/m]'].to_numpy() + 1j * df['EyIm [V/m]'].to_numpy()
-    Ez = df['EzRe [V/m]'].to_numpy() + 1j * df['EzIm [V/m]'].to_numpy()
-    Hx = df['HxRe [A/m]'].to_numpy() + 1j * df['HxIm [A/m]'].to_numpy()
-    Hy = df['HyRe [A/m]'].to_numpy() + 1j * df['HyIm [A/m]'].to_numpy()
-    Hz = df['HzRe [A/m]'].to_numpy() + 1j * df['HzIm [A/m]'].to_numpy()
-    return (Ex, Ey, Ez), (Hx, Hy, Hz)
-
-
-def poynting_vector(E, H):
-    """Return power density given x-, y-, and z-component of electric
-    and magnetic field. It assumes that the given components are max
-    values and all components of the power dansity are scaled by 1/2.
-
-    Parameters
-    ----------
-    E : tuple
-        3 arrays for 3 components of the electric field vector.
-    H : tuple
-        3 arrays for 3 components of the magnetic field vector.
-
-    Returns
-    -------
-    tuple
-        Containg 3 arrays for 3 components of the Poynting vector.
-    """
-    Sx = 0.5 * (E[1] * H[2].conjugate() - E[2] * H[1].conjugate())
-    Sy = 0.5 * (E[2] * H[0].conjugate() - E[0] * H[2].conjugate())
-    Sz = 0.5 * (E[0] * H[1].conjugate() - E[1] * H[0].conjugate())
-    return Sx, Sy, Sz
 
 
 def estimate_normals(xyz, take_every=1, knn=30, fast=True):
