@@ -1,12 +1,12 @@
 import os
 
 import numpy as np
-import open3d as o3d
 import pandas as pd
 
 
-def load_data(antenna, distance, drop_idx=None):
-    """Load coordinates and electromagnetic field components-
+def load_raw_data(antenna, distance, drop_idx=None):
+    """Load coordinates and electromagnetic field components as
+    exported from CST.
 
     Parameters
     ----------
@@ -96,6 +96,19 @@ def load_data(antenna, distance, drop_idx=None):
             HyIm_df = HyIm_df.drop(index=drop_idx).reset_index(drop=True)
             HzRe_df = HzRe_df.drop(index=drop_idx).reset_index(drop=True)
             HzIm_df = HzIm_df.drop(index=drop_idx).reset_index(drop=True)
+        elif (antenna == 'DipoleVertical') and (distance == 15):
+            xyz = xyz.drop(index=drop_idx).reset_index(drop=True)
+            ExRe_df = ExRe_df.drop(index=drop_idx).reset_index(drop=True)
+            ExIm_df = ExIm_df.drop(index=drop_idx).reset_index(drop=True)
+            EyRe_df = EyRe_df.drop(index=drop_idx).reset_index(drop=True)
+            EyIm_df = EyIm_df.drop(index=drop_idx).reset_index(drop=True)
+            EzRe_df = EzRe_df.drop(index=drop_idx).reset_index(drop=True)
+            EzIm_df = EzIm_df.drop(index=drop_idx).reset_index(drop=True)
+            HxRe_df = HxRe_df.drop(index=drop_idx).reset_index(drop=True)
+            HxIm_df = HxIm_df.drop(index=drop_idx).reset_index(drop=True)
+            HyRe_df = HyRe_df.drop(index=drop_idx).reset_index(drop=True)
+            HzRe_df = HzRe_df.drop(index=drop_idx).reset_index(drop=True)
+            HzIm_df = HzIm_df.drop(index=drop_idx).reset_index(drop=True)
         elif (antenna == 'DipoleHorizontal') and (distance == 15):
             xyz = xyz.drop(index=drop_idx).reset_index(drop=True)
             ExRe_df = ExRe_df.drop(index=drop_idx).reset_index(drop=True)
@@ -119,6 +132,48 @@ def load_data(antenna, distance, drop_idx=None):
     Hz = HzRe_df['value'] + 1j * HzIm_df['value']
     
     return xyz, (Ex, Ey, Ez), (Hx, Hy, Hz)
+
+
+def load_clean_data(antenna, distance):
+    """Load clean dataset.
+
+    Parameters
+    ----------
+    antenna : str
+        Which antenna.
+    distance : int
+        Antenna-to-ear separation distance in mm.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Clean data.
+    """
+    path = os.path.join('data', 'clean')
+    df = pd.read_csv(os.path.join(path, f'{antenna}_d{distance}mm.csv'),
+                     index_col=0)
+    return df
+
+
+def load_processed_data(antenna, distance):
+    """Load an augmented dataset.
+
+    Parameters
+    ----------
+    antenna : str
+        Which antenna.
+    distance : int
+        Antenna-to-ear separation distance in mm.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Augmented data.
+    """
+    path = os.path.join('data', 'processed')
+    df = pd.read_csv(os.path.join(path, f'{antenna}_d{distance}mm.csv'),
+                     index_col=0)
+    return df  
 
 
 def compute_power_density(E, H):
@@ -168,6 +223,7 @@ def estimate_normals(xyz, take_every=1, knn=30, fast=True):
         point cloud, and each column corresponds to each component of
         the normal vector.
     """
+    import open3d as o3d
     xyz = xyz[::take_every, :]
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(xyz)
