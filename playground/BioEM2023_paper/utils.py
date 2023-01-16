@@ -277,7 +277,7 @@ def export_rect_idx(xyz, center, edge_length, view='xy'):
         Edge length of a desired rectangle.
     view : string
         Point of view for point extraction. Currently supported `xy`
-        and `zy`.
+        and `yz`.
 
     Returns
     -------
@@ -290,8 +290,8 @@ def export_rect_idx(xyz, center, edge_length, view='xy'):
     origin = [x_bound[0], y_bound[0]]
     if view == 'xy':
         col_idx = 0
-    elif view == 'zy':
-        col_idx = 2
+    elif view == 'yz':
+        col_idx = 1
     else:
         raise ValueError(f'Not supported view: {view}')
     idx_rect = np.where((xyz[:, col_idx] > x_bound[0])
