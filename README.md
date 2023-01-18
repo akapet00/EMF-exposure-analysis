@@ -29,6 +29,7 @@ pip install -r requirements.txt
 | 1 | `ACROSS2021_presentation` [published] | Accurate numerical approach to solving the surface integral of a vector field. Presented at the 2021 Int'l Workshop on Advanced Cooperative Systems.|
 | 2 | `BioEM2022_paper` [published] | Novel procedure for spatial averaging of absorbed power density on realistic body models at millimeter waves. In proceedings of BioEM2022, p. 242-248.|
 | 3 | `BioEM2023_paper` [WIP] | Title to-be-added. To appear in proceedings of BioEM2023.|
+| 4 | `IEEE-ICES-TC95-SC6-WG7` [WIP] | ICES TC95 SC6 WG7, item 2 on the absorbed power density averaging methods on the spherical and cylindrical surface. |
 | 4 | `IEEE-J-ERM_paper` [published] | Area-averaged transmitted and absorbed power density on realistic body parts. In IEEE Journal of Electromagnetics, RF and Microwaves in Medicine and Biology, 2022, doi: 10.1109/JERM.2022.3225380. |
 | 5 | `IEEE-TEMC_paper` [published] | Assessment of incident power density on spherical head model up to 100 GHz. In IEEE Transactions on Electromagnetic Compatibility, 2022, doi: 10.1109/TEMC.2022.3183071 |
 | 6 | `IMBioC2022_paper` [published] | Assessment of area-average absorbed power density on realistic tissue models at mmWaves. In proceedings of 2022 IEEE MTT-S International Microwave Biomedical Conference (IMBioC), p. 153-155, doi: 10.1109/IMBioC52515.2022.9790150 |
