@@ -299,3 +299,30 @@ def export_rect_idx(xyz, center, edge_length, view='xy'):
                         & (xyz[:, 1] > y_bound[0])
                         & (xyz[:, 1] < y_bound[1]))[0]
     return origin, idx_rect
+
+
+def diff(fun, arg=0):
+    """Central finite differentiation of 2-D function.
+    
+    Parameters
+    ----------
+    fun : callable
+        2-D function which is differentiated.
+    arg : int, optional
+        Argument over which `fun` is differentiated.
+    
+    Returns
+    -------
+    callable
+        First order numerical derivative of `fun`.
+    """
+    def df(points, eps=1e-3):
+        if arg == 0:
+            return (fun(np.c_[points[:, 0] + eps, points[:, 1]])
+                    - fun(np.c_[points[:, 0] - eps, points[:, 1]])) / (2 * eps)
+        elif arg == 1:
+            return (fun(np.c_[points[:, 0], points[:, 1] + eps])
+                    - fun(np.c_[points[:, 0], points[:, 1] - eps])) / (2 * eps)
+        else:
+            raise ValueError('Unsupported `arg`.')
+    return df
