@@ -279,7 +279,7 @@ def scatter_3d(xyz_dict, figsize=None, azim=[45], elev=[9], c=None, alpha=1):
     return fig, ax
 
 
-def save_fig(fig, fname, formats=['pdf']):
+def save_fig(fig, fname, formats=['pdf'], **kwargs):
     """Save the current figure.
 
     Parameters
@@ -292,12 +292,14 @@ def save_fig(fig, fname, formats=['pdf']):
         `formats` list.
     formats : list, optional
         The file format(s). Figure will be saved in pdf by default.
+    kwargs : dict, optional
+        Additional keyword arugments.
 
     Returns
     -------
     None
     """
     for format in formats:
-        fig.savefig(f'{fname}.{format}', dpi=300, facecolor='w', edgecolor='w',
-                    orientation='portrait', format=format, transparent=True,
-                    bbox_inches='tight', pad_inches=0.1)
+        fig.savefig(f'{fname}.{format}', format=format, transparent=True,
+                    orientation='portrait', facecolor='w', edgecolor='w',
+                    bbox_inches='tight', pad_inches=0.1, **kwargs)
