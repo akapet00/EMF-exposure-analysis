@@ -173,7 +173,25 @@ def load_processed_data(antenna, distance):
     path = os.path.join('data', 'processed')
     df = pd.read_csv(os.path.join(path, f'{antenna}_d{distance}mm.csv'),
                      index_col=0)
-    return df  
+    return df
+
+
+def load_apd_data():
+    """Load APD values.
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    pandas.DataFrame
+        APD data.
+    """
+    path = os.path.join('data', 'results')
+    df = pd.read_csv(os.path.join(path, 'Results_APD.csv'),
+                     index_col=0)
+    return df
 
 
 def compute_power_density(E, H):
