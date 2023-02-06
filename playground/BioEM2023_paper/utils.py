@@ -309,7 +309,7 @@ def export_rect_idx(xyz, center, edge_length, view='xy'):
     if view == 'xy':
         col_idx = 0
     elif view == 'yz':
-        col_idx = 1
+        col_idx = 2
     else:
         raise ValueError(f'Not supported view: {view}')
     idx_rect = np.where((xyz[:, col_idx] > x_bound[0])
