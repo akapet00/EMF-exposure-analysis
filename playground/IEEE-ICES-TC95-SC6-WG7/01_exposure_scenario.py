@@ -6,10 +6,9 @@ import seaborn as sns
 import numpy as np
 
 from dosipy.constants import eps_0
-from dosipy.utils.dataloader import (load_tissue_diel_properties,
-                                     load_antenna_el_properties)
+from dosipy.utils.dataloader import load_tissue_diel_properties
 
-from utils import reflection_coefficient
+from utils import reflection_coefficient, load_dipole_data
 
 
 sns.set_theme(style='ticks',
@@ -26,10 +25,10 @@ def main():
     f = 30e9
     
     # antenna electric properties, free space (Poljak 2005)
-    dipole_props = load_antenna_el_properties(f)
+    dipole_props = load_dipole_data(f)
     
     # current through the antenna
-    Is = dipole_props.ireal.to_numpy() + dipole_props.iimag.to_numpy() * 1j
+    Is = dipole_props.Ir.to_numpy() + dipole_props.Ii.to_numpy() * 1j
     
     # dipole-to-tissue separation distance
     d = 5 / 1000  # meters
