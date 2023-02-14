@@ -61,3 +61,28 @@ def reflection_coefficient(eps, theta_i=0, polarization='parallel'):
         (np.cos(theta_i) - scaler)
         / (np.cos(theta_i) + scaler)
     )
+
+
+def load_dipole_data(f):
+    """Return the current distribution over a half-wavelength dipole
+    antenna for a given frequency.
+
+    Parameters
+    ----------
+    f : float
+        Frequency of the dipole in Hz.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Current distribution over the wire alongside additional
+        configuration details.
+    """
+    import os
+    import pandas as pd
+    from scipy.io import loadmat
+    fname = os.path.join('source', 'half-wavelength-dipole-10mW.mat')
+    data = loadmat(fname)['output']
+    df = pd.DataFrame(data, columns=['N', 'f', 'L', 'v', 'x', 'Ir', 'Ii'])
+    df = df[df.f == f].reset_index(drop=True)
+    return df
