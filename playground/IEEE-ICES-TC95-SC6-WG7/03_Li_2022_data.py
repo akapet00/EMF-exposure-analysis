@@ -93,6 +93,6 @@ def main():
     df_tab_6.to_csv(os.path.join('data', f'{file}_table_6.csv'), index=False)
     df_tab_8.to_csv(os.path.join('data', f'{file}_table_8.csv'), index=False)
 
-    
+
 if __name__ == '__main__':
     main()
