@@ -59,6 +59,7 @@ def main():
         yticklabels=[0.4, 0.6, 0.8],
         ylim=[0.385, 0.8])
     ax2.legend(loc='upper right', frameon=False)
+    sns.despine(fig=fig, ax=ax1, right=False)
     fig.tight_layout()
     plt.show()
     return fig
