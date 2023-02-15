@@ -13,7 +13,7 @@ from utils import reflection_coefficient, load_dipole_data
 
 sns.set_theme(style='ticks',
               font_scale=1.5,
-              palette='colorblind',
+              palette='rocket',
               rc={'text.usetex': True,
                   'text.latex.preamble': r'\usepackage{amsmath}',
                   'font.family': 'serif'})
@@ -65,6 +65,7 @@ def main():
     zt = np.linspace(0, z_max)
     
     # visualization
+    c = sns.color_palette('rocket', 1)
     fig, ax = plt.subplots()
     width = (np.ptp(xs) / np.ptp(xt) * 100).item()
     axin = inset_axes(ax, width=f'{width}%', height='20%', loc='center',
@@ -93,7 +94,7 @@ def main():
             s='$A$ = 1 cm$^2$')
     # dipole
     ax.hlines(y=ys[0], xmin=xs.min(), xmax=xs.max(),
-              color='r', lw=4)
+              color=c, lw=4)
     # axes settings
     ax.set_aspect('equal', 'box')
     ax.set(xlabel='$x$ (cm)',

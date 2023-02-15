@@ -12,7 +12,7 @@ from utils import reflection_coefficient
 
 sns.set_theme(style='ticks',
               font_scale=1.5,
-              palette='colorblind',
+              palette='rocket',
               rc={'text.usetex': True,
                   'text.latex.preamble': r'\usepackage{amsmath}',
                   'font.family': 'serif'})
@@ -34,7 +34,7 @@ def main():
     T_tr = 1 - gamma ** 2
 
     # visualize
-    cs = sns.color_palette('colorblind', 2)
+    cs = sns.color_palette('rocket', 2)
     fig, ax1 = plt.subplots()
     ax1.plot(f/1e9, penetration_depth * 1000, 'o-', lw=3, ms=7, c=cs[0],
              label='penetration\ndepth')
