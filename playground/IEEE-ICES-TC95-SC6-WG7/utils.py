@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 
@@ -78,7 +80,6 @@ def load_dipole_data(f):
         Current distribution over the wire alongside additional
         configuration details.
     """
-    import os
     import pandas as pd
     from scipy.io import loadmat
     fname = os.path.join('source', 'half-wavelength-dipole-10mW.mat')
@@ -86,3 +87,80 @@ def load_dipole_data(f):
     df = pd.DataFrame(data, columns=['N', 'f', 'L', 'v', 'x', 'Ir', 'Ii'])
     df = df[df.f == f].reset_index(drop=True)
     return df
+
+
+def estimate_apd(d, f, extent, sigma, eps_r):
+    """Return estimated absorbed power density for a given separation
+    distance between the dipole and the dry skin target and operating
+    frequency of the dipole.
+    
+    Ref: ICNIRP 2020
+    
+    Parameters
+    ----------
+    d : int
+        Dipole-to-skin separation distance in mm.
+    f : int
+        Dipole frequency in GHz.
+    extent : tuple
+        Extent of the exposed surface. The dipole is placed at the
+        center position at `d` mm away from the surface. It should
+        containt 4 elements as follows (xmin, xmax, ymin, max) in mm.
+    sigma : float
+        Tissue conductivity in S/m2.
+    eps_r : float
+        Relative dielectric tissue permittivity.
+    
+    Returns
+    -------
+    tuple
+        4 different approximations of the spatially averaged absorbed
+        power density in W per m squared by considering normal and norm
+        defintion of the incident power density spatially averaged on 1
+        and 4 cm squared surface.
+    """
+    from dosipy.constants import eps_0
+    from dosipy.utils.integrate import elementwise_rectquad
+    # load data
+    PDinc = np.load(os.path.join('data',
+                                 f'02_power_density_d{d}mm_f{f}GHz.npy'))
+    PDinc_n = PDinc[:, :, 2].real
+    PDinc_tot = np.sqrt(PDinc[:, :, 0] ** 2
+                        + PDinc[:, :, 1] ** 2
+                        + PDinc[:, :, 2] ** 2).real
+    lims = (int(PDinc.shape[0]/4),
+            int(PDinc.shape[0]*3/4) + 1)
+    
+    # averaged incident power densities
+    A4 = 4 / 100 / 100  # 4 cm2 integration surface
+    A1 = A4 / 4  # 1 cm2 integration surface
+    x = np.linspace(extent[0], extent[1], PDinc.shape[0]) / 1000
+    y = np.linspace(extent[2], extent[3], PDinc.shape[1]) / 1000
+    sPDinc_n1 = elementwise_rectquad(x[lims[0]:lims[1]],
+                                     y[lims[0]:lims[1]],
+                                     PDinc_n[lims[0]:lims[1],
+                                             lims[0]:lims[1]]) / (2 * A1)
+    sPDinc_tot1 = elementwise_rectquad(x[lims[0]:lims[1]],
+                                       y[lims[0]:lims[1]],
+                                       PDinc_tot[lims[0]:lims[1],
+                                                 lims[0]:lims[1]]) / (2 * A1)
+    sPDinc_n4 = elementwise_rectquad(x, y, PDinc_n) / (2 * A4)
+    sPDinc_tot4 = elementwise_rectquad(x, y, PDinc_tot) / (2 * A4)
+    
+    # complex dielectric permitivity given a frequency of the dipole
+    eps_i = sigma / (2 * np.pi * f * 1e9 * eps_0)
+
+    # abosolute permittivity
+    eps = eps_r - 1j * eps_i
+
+    # skin reflection coefficient
+    gamma = reflection_coefficient(eps)
+
+    # power transmission coefficient
+    T_tr = 1 - gamma ** 2
+
+    sPDab_n1 = T_tr * sPDinc_n1
+    sPDab_tot1 = T_tr * sPDinc_tot1
+    sPDab_n4 = T_tr * sPDinc_n4
+    sPDab_tot4 = T_tr * sPDinc_tot4
+    return sPDab_n1, sPDab_tot1, sPDab_n4, sPDab_tot4
