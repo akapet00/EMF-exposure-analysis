@@ -21,7 +21,7 @@ def main():
     d_90 = np.array([2, 5, 10]) / 1000  # meters
 
     # exposed volume coordinates
-    xy = jnp.linspace(-0.01, 0.01)
+    xy = jnp.linspace(-0.01, 0.01, 51)
     z = jnp.array([0])
     
     for _f in tqdm(f):
@@ -41,9 +41,9 @@ def main():
         Is_x = holoborodko(Is, xs[1]-xs[0])
 
         if _f/1e9 in [10, 30]:
-            d = d_10_30
+            d = d_10_30.copy()
         else:
-            d = d_90
+            d = d_90.copy()
         for _d in tqdm(d):
             zs = -jnp.full_like(xs, _d)
             zt = z[0]
