@@ -21,7 +21,7 @@ from tqdm import tqdm
 
 from dosipy.utils.integrate import elementwise_dblquad
 from dosipy.utils.viz import scatter_2d, scatter_3d
-from utils import load_processed_data, export_rect_idx
+from utils import load_processed_surface_data, export_rect_idx
 
 
 def remove_hidden_yz(xyz, radius=100):
@@ -69,7 +69,7 @@ def worker(args):
     antenna, distance = args
     
     # load data
-    df = load_processed_data(antenna, distance)
+    df = load_processed_surface_data(antenna, distance)
     xyz = df[['x', 'y', 'z']].values
     n = df[['nx', 'ny', 'nz']].values
     pd = df['PD'].values

@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 
-def load_raw_data(antenna, distance, drop_idx=None):
+def load_raw_surface_data(antenna, distance, drop_idx=None):
     """Load coordinates and electromagnetic field components as
     exported from CST.
 
@@ -25,7 +25,7 @@ def load_raw_data(antenna, distance, drop_idx=None):
         magnetic field, respectively.
     """
     # data path
-    path = os.path.join('data', 'raw')
+    path = os.path.join('data', 'raw', 'surface')
     
     # E field components
     ExRe_df = pd.read_csv(
@@ -134,7 +134,25 @@ def load_raw_data(antenna, distance, drop_idx=None):
     return xyz, (Ex, Ey, Ez), (Hx, Hy, Hz)
 
 
-def load_clean_data(antenna, distance):
+def load_raw_volume_data(antenna, distance, drop_idx=None):
+    """Load coordinates and SAR as exported from CST within the volume.
+
+    Parameters
+    ----------
+    antenna : str
+        Which antenna.
+    distance : int
+        Antenna-to-ear separation distance in mm.
+
+    Returns
+    -------
+    dataframe
+        Coordinates and corresponding SAR.
+    """
+    pass
+
+
+def load_clean_surface_data(antenna, distance):
     """Load clean dataset.
 
     Parameters
@@ -149,13 +167,34 @@ def load_clean_data(antenna, distance):
     pandas.DataFrame
         Clean data.
     """
-    path = os.path.join('data', 'clean')
+    path = os.path.join('data', 'clean', 'surface')
     df = pd.read_csv(os.path.join(path, f'{antenna}_d{distance}mm.csv'),
                      index_col=0)
     return df
 
 
-def load_processed_data(antenna, distance):
+def load_clean_volume_data(antenna, distance):
+    """Load clean dataset.
+
+    Parameters
+    ----------
+    antenna : str
+        Which antenna.
+    distance : int
+        Antenna-to-ear separation distance in mm.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Clean data.
+    """
+    path = os.path.join('data', 'clean', 'volume')
+    df = pd.read_csv(os.path.join(path, f'{antenna}_d{distance}mm.csv'),
+                     index_col=0)
+    return df
+
+
+def load_processed_surface_data(antenna, distance):
     """Load an augmented dataset.
 
     Parameters
@@ -170,7 +209,7 @@ def load_processed_data(antenna, distance):
     pandas.DataFrame
         Augmented data.
     """
-    path = os.path.join('data', 'processed')
+    path = os.path.join('data', 'processed', 'surface')
     df = pd.read_csv(os.path.join(path, f'{antenna}_d{distance}mm.csv'),
                      index_col=0)
     return df
