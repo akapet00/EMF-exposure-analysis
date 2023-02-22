@@ -25,7 +25,7 @@ def load_raw_surface_data(antenna, distance, drop_idx=None):
         magnetic field, respectively.
     """
     # data path
-    path = os.path.join('data', 'raw', 'surface')
+    path = os.path.join('data', 'surface', 'raw')
     
     # E field components
     ExRe_df = pd.read_csv(
@@ -167,7 +167,7 @@ def load_clean_surface_data(antenna, distance):
     pandas.DataFrame
         Clean data.
     """
-    path = os.path.join('data', 'clean', 'surface')
+    path = os.path.join('data', 'surface', 'clean')
     df = pd.read_csv(os.path.join(path, f'{antenna}_d{distance}mm.csv'),
                      index_col=0)
     return df
@@ -188,7 +188,7 @@ def load_clean_volume_data(antenna, distance):
     pandas.DataFrame
         Clean data.
     """
-    path = os.path.join('data', 'clean', 'volume')
+    path = os.path.join('data', 'volume', 'clean')
     df = pd.read_csv(os.path.join(path, f'{antenna}_d{distance}mm.csv'),
                      index_col=0)
     return df
@@ -209,7 +209,7 @@ def load_processed_surface_data(antenna, distance):
     pandas.DataFrame
         Augmented data.
     """
-    path = os.path.join('data', 'processed', 'surface')
+    path = os.path.join('data', 'surface', 'processed')
     df = pd.read_csv(os.path.join(path, f'{antenna}_d{distance}mm.csv'),
                      index_col=0)
     return df
