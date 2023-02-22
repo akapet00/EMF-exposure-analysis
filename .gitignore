@@ -145,5 +145,9 @@ playground/*/data/*/*.txt
 playground/*/data/*/*.h5
 playground/*/data/*/*.mat
 playground/*/data/*/*.csv
+playground/*/data/*/*/*.txt
+playground/*/data/*/*/*.h5
+playground/*/data/*/*/*.mat
+playground/*/data/*/*/*.csv
 !playground/SoftCOM2022/data/*.mat
 .bkp
