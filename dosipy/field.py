@@ -84,7 +84,7 @@ def efield(xt, yt, zt, xs, ys, zs, Is, f):
     prefix = 1 / (1j * 4 * pi * omega * eps_0)
     g = green(xt, yt, zt, xs, ys, zs, f)
     g_x, g_y, g_z = green_grad(xt + 0j, yt + 0j, zt + 0j, xs, ys, zs, f)
-    Ex = prefix * (- equad(xs, Is_x * g_x, 3)
+    Ex = prefix * (equad(xs, Is_x * g_x, 3)
                    - gamma ** 2 * equad(xs, Is * g, 3))
     Ey = prefix * (equad(xs, Is_x * g_y, 3))
     Ez = prefix * (equad(xs, Is_x * g_z, 3))
@@ -122,7 +122,7 @@ def hfield(xt, yt, zt, xs, ys, zs, Is, f):
     prefix = 1 / (4 * pi)
     _, g_y, g_z = green_grad(xt + 0j, yt + 0j, zt + 0j, xs, ys, zs, f)
     Hy = prefix * equad(xs, Is * g_z, 3)
-    Hz = - prefix * equad(xs, Is * g_y, 3)
+    Hz = prefix * equad(xs, Is * g_y, 3)
     Hx = jnp.zeros_like(Hz)
     return Hx.item(), Hy.item(), Hz.item()
 
@@ -167,14 +167,14 @@ def poynting(xt, yt, zt, xs, ys, zs, f, Is, Is_x=None):
     g_x, g_y, g_z = green_grad(xt + 0j, yt + 0j, zt + 0j, xs, ys, zs, f)
 
     e_prefix = 1 / (1j * 4 * pi * omega * eps_0)
-    Ex = e_prefix * (- equad(xs, Is_x * g_x, 3)
+    Ex = e_prefix * (equad(xs, Is_x * g_x, 3)
                      - gamma ** 2 * equad(xs, Is * g, 3))
     Ey = e_prefix * (equad(xs, Is_x * g_y, 3))
     Ez = e_prefix * (equad(xs, Is_x * g_z, 3))
 
     h_prefix = 1 / (4 * pi)
     Hy = h_prefix * equad(xs, Is * g_z, 3)
-    Hz = - h_prefix * equad(xs, Is * g_y, 3)
+    Hz =    h_prefix * equad(xs, Is * g_y, 3)
 
     Sx = Ey * Hz.conjugate() - Ez * Hy.conjugate()
     Sy = Ex * Hz.conjugate()
@@ -248,14 +248,14 @@ def poynting_parallel(xt, yt, zt, xs, ys, zs, f, Is, Is_x=None):
         _g_x = g_grad[i, 0, :]
         _g_y = g_grad[i, 1, :]
         _g_z = g_grad[i, 2, :]
-        Ex = e_prefix * (- equad(xs, Is_x * _g_x, 3)
+        Ex = e_prefix * (equad(xs, Is_x * _g_x, 3)
                          - gamma ** 2 * equad(xs, Is * _g, 3))
         Ey = e_prefix * (equad(xs, Is_x * _g_y, 3))
         Ez = e_prefix * (equad(xs, Is_x * _g_z, 3))
 
         h_prefix = 1 / (4 * pi)
         Hy = h_prefix * equad(xs, Is * _g_z, 3)
-        Hz = - h_prefix * equad(xs, Is * _g_y, 3)
+        Hz = h_prefix * equad(xs, Is * _g_y, 3)
 
         Sx.append(Ey * Hz.conjugate() - Ez * Hy.conjugate())
         Sy.append(Ex * Hz.conjugate())
