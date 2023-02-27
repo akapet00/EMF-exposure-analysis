@@ -21,7 +21,7 @@ def main():
     d_90 = np.array([2, 5, 10]) / 1000  # meters
 
     # exposed volume coordinates
-    xy = jnp.linspace(-0.01, 0.01, 51)
+    xy = jnp.linspace(-0.01, 0.01, 99)
     z = jnp.array([0])
     
     for _f in tqdm(f):
