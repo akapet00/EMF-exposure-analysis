@@ -122,7 +122,7 @@ def hfield(xt, yt, zt, xs, ys, zs, Is, f):
     prefix = 1 / (4 * pi)
     _, g_y, g_z = green_grad(xt + 0j, yt + 0j, zt + 0j, xs, ys, zs, f)
     Hy = prefix * equad(xs, Is * g_z, 3)
-    Hz = prefix * equad(xs, Is * g_y, 3)
+    Hz = - prefix * equad(xs, Is * g_y, 3)
     Hx = jnp.zeros_like(Hz)
     return Hx.item(), Hy.item(), Hz.item()
 
@@ -174,7 +174,7 @@ def poynting(xt, yt, zt, xs, ys, zs, f, Is, Is_x=None):
 
     h_prefix = 1 / (4 * pi)
     Hy = h_prefix * equad(xs, Is * g_z, 3)
-    Hz =    h_prefix * equad(xs, Is * g_y, 3)
+    Hz = - h_prefix * equad(xs, Is * g_y, 3)
 
     Sx = Ey * Hz.conjugate() - Ez * Hy.conjugate()
     Sy = Ex * Hz.conjugate()
@@ -255,7 +255,7 @@ def poynting_parallel(xt, yt, zt, xs, ys, zs, f, Is, Is_x=None):
 
         h_prefix = 1 / (4 * pi)
         Hy = h_prefix * equad(xs, Is * _g_z, 3)
-        Hz = h_prefix * equad(xs, Is * _g_y, 3)
+        Hz = - h_prefix * equad(xs, Is * _g_y, 3)
 
         Sx.append(Ey * Hz.conjugate() - Ez * Hy.conjugate())
         Sy.append(Ex * Hz.conjugate())
