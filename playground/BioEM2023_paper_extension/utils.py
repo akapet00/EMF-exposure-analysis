@@ -147,9 +147,18 @@ def load_raw_volume_data(antenna, distance, drop_idx=None):
     Returns
     -------
     dataframe
-        Coordinates and corresponding SAR.
+        Coordinates and the corresponding SAR.
     """
-    pass
+    # data path
+    path = os.path.join('data', 'volume', 'raw')
+    
+    # SAR
+    df = pd.read_csv(
+        os.path.join(path, f'{antenna}_SAR_d{distance}mm.txt'),
+        sep='\s+', comment='%', header=None, names=['x', 'y', 'z', 'SAR']
+    )
+    
+    return df
 
 
 def load_clean_surface_data(antenna, distance):
@@ -212,6 +221,25 @@ def load_processed_surface_data(antenna, distance):
     path = os.path.join('data', 'surface', 'processed')
     df = pd.read_csv(os.path.join(path, f'{antenna}_d{distance}mm.csv'),
                      index_col=0)
+    return df
+
+
+def load_processed_volume_data(antenna, distance):
+    """Load an augmented dataset.
+
+    Parameters
+    ----------
+    antenna : str
+        Which antenna.
+    distance : int
+        Antenna-to-ear separation distance in mm.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Augmented data.
+    """
+    df = load_clean_volume_data(antenna, distance)
     return df
 
 
