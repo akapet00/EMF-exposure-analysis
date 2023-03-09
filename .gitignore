@@ -150,5 +150,5 @@ playground/*/data/*/*/*.h5
 playground/*/data/*/*/*.mat
 playground/*/data/*/*/*.csv
 !playground/SoftCOM2022/data/*.mat
-!playgroud/BioEM2023_paper_extension/data/results/*.csv
+!playground/BioEM2023_paper_extension/data/results/*.csv
 .bkp
