@@ -28,14 +28,15 @@ pip install -r requirements.txt
 | `playground` |  | Each directory within holds the code (notebooks and scripts) for journal and  conference papers, talks, and demos used throughout my research dealing  with high-frequency EM dosimetry. |
 | 1 | `ACROSS2021_presentation` [published] | Accurate numerical approach to solving the surface integral of a vector field. Presented at the 2021 Int'l Workshop on Advanced Cooperative Systems.|
 | 2 | `BioEM2022_paper` [published] | Novel procedure for spatial averaging of absorbed power density on realistic body models at millimeter waves. In proceedings of BioEM2022, p. 242-248.|
-| 3 | `BioEM2023_paper` [WIP] | Title to-be-added. To appear in proceedings of BioEM2023.|
+| 3 | `BioEM2023_paper_extension` [WIP] | Title to-be-added. To appear in proceedings of BioEM2023.|
 | 4 | `IEEE-ICES-TC95-SC6-WG7` [WIP] | ICES TC95 SC6 WG7, item 2 on the absorbed power density averaging methods on the spherical and cylindrical surface. |
-| 4 | `IEEE-J-ERM_paper` [published] | Area-averaged transmitted and absorbed power density on realistic body parts. In IEEE Journal of Electromagnetics, RF and Microwaves in Medicine and Biology, 2022, doi: 10.1109/JERM.2022.3225380. |
+| 4 | `IEEE-J-ERM_paper` [published] | Area-averaged transmitted and absorbed power density on realistic body parts. In IEEE Journal of Electromagnetics, RF and Microwaves in Medicine and Biology, vol. 7, no.1, p. 39-45, 2022, doi: 10.1109/JERM.2022.3225380. |
 | 5 | `IEEE-TEMC_paper` [published] | Assessment of incident power density on spherical head model up to 100 GHz. In IEEE Transactions on Electromagnetic Compatibility, 2022, doi: 10.1109/TEMC.2022.3183071 |
 | 6 | `IMBioC2022_paper` [published] | Assessment of area-average absorbed power density on realistic tissue models at mmWaves. In proceedings of 2022 IEEE MTT-S International Microwave Biomedical Conference (IMBioC), p. 153-155, doi: 10.1109/IMBioC52515.2022.9790150 |
-| 7 | `IRPA2022_paper` [WIP] | Machine learning-assisted antenna modeling for realistic assessment of incident power density on non-planar surfaces above 6 GHz. Abstract is presented at 2022 European Congress on Radiation Protection. Full paper is currently pending publication in Radiation Protection Dosimetry journal. |
+| 7 | `IRPA2022_paper` [WIP] | Machine learning-assisted antenna modeling for realistic assessment of incident power density on non-planar surfaces above 6 GHz. Abstract presented at 2022 European Congress on Radiation Protection. Full paper is currently pending publication in Radiation Protection Dosimetry journal. |
 | 8 | `SoftCOM2022_paper` [published] | Stochastic-Deterministic Electromagnetic Modeling of Human Head Exposure to Microsoft HoloLens. In proceedings of 2022 International Conference on Software, Telecommunications and Computer Networks (SoftCOM), p. 1-5, doi: 10.23919/SoftCOM55329.2022.9911431. |
-| 9 | `demos` | Set of notebooks that showcase how to use `dosipy` package. |
+| 9 | `SpliTech2021_paper` [published] | Application of Automatic Differentiation in Electromagnetic Dosimetry - Assessment of the Absorbed Power Density in the mmWave Frequency Spectrum. In proceedings of 2021 6th International Conference on Smart and Sustainable Technologies (SpliTech), p. 1-6, doi: 10.23919/SpliTech52315.2021.9566429. |
+| 10 | `demos` | Set of notebooks that showcase how to use `dosipy` package. |
 
  ## License
 
