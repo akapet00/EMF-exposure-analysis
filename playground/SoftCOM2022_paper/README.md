@@ -9,4 +9,4 @@ In this paper, the electromagnetic (EM) simulation of the exposure of a spherica
 
 ## Cite
 
-Lojić Kapetanović A, Šušnjara A, Poljak D, Russo M. Stochastic-deterministic electromagnetic modeling of human head exposure to Microsoft HoloLens. In Proceedings of 2022 International Conference on Software, Telecommunications and Computer Networks (SoftCOM), 2022, pp. 1-5, doi: 10.23919/SoftCOM55329.2022.9911431.
+A. Kapetanović, A. Šušnjara, D. Poljak and M. Russo, "Stochastic-Deterministic Electromagnetic Modeling of Human Head Exposure to Microsoft HoloLens," 2022 International Conference on Software, Telecommunications and Computer Networks (SoftCOM), Split, Croatia, 2022, p. 1-5, doi: 10.23919/SoftCOM55329.2022.9911431.

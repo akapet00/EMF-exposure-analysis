@@ -9,4 +9,4 @@ At millimeter waves (MMW), the current state of research in computational dosime
 
 ## Cite
 
-Lojić Kapetanović A, Sacco G, Poljak D, Zhadobov M. Area-averaged transmitted and absorbed power density on a realistic ear model. IEEE Journal of Electromagnetics, RF and Microwaves in Medicine and Biology, 2022, doi: 10.1109/JERM.2022.3225380.
+A. Kapetanović, G. Sacco, D. Poljak and M. Zhadobov, "Area-Averaged Transmitted and Absorbed Power Density on a Realistic Ear Model," in IEEE Journal of Electromagnetics, RF and Microwaves in Medicine and Biology, vol. 7, no. 1, p. 39-45, March 2023, doi: 10.1109/JERM.2022.3225380.

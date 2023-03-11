@@ -9,4 +9,4 @@ This article presents a technique for the accurate assessment of the spatially a
 
 ## Cite
 
-Lojić Kapetanović A, Poljak D. Assessment of incident power density on spherical head model up to 100 GHz. IEEE Transactions on Electromagnetic Compatibility, vol. 64, no. 5, pp. 1296-1303, 2022, doi: 10.1109/TEMC.2022.3183071.
+A. Kapetanović and D. Poljak, "Assessment of Incident Power Density on Spherical Head Model up to 100 GHz," in IEEE Transactions on Electromagnetic Compatibility, vol. 64, no. 5, p. 1296-1303, 2022, doi: 10.1109/TEMC.2022.3183071.

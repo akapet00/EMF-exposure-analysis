@@ -9,4 +9,4 @@ Currently, most state-of-the-art research in computational dosimetry utilizes fl
 
 ## Cite
 
-Lojić Kapetanović A, Sacco G, Poljak D, Zhadobov M. Assessment of area-average absorbed power density on realistic tissue models at mmWaves. 2022 IEEE MTT-S International Microwave Biomedical Conference (IMBioC), 2022, pp. 153-155, doi: 10.1109/IMBioC52515.2022.9790150.
+A. Kapetanović, G. Sacco, D. Poljak and M. Zhadobov, "Assessment of Area-Average Absorbed Power Density on Realistic Tissue Models at mmWaves," 2022 IEEE MTT-S International Microwave Biomedical Conference (IMBioC), Suzhou, China, 2022, p. 153-155, doi: 10.1109/IMBioC52515.2022.9790150.
