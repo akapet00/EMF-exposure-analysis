@@ -8,7 +8,7 @@ with open("requirements.txt") as f:
     requirements = f.read().splitlines()
 
 setup(name='dosipy',
-      url='https://github.com/antelk/EMF-exposure-analysis',
+      url='https://github.com/akapet00/EMF-exposure-analysis',
       version='0.0.1',
       packages=find_packages(),
       install_requires=requirements,
@@ -18,8 +18,8 @@ setup(name='dosipy',
       zip_safe=False,
       description='High-frequency EM dosimetry simulation software.',
       long_description=long_description,
-      author='Ante Lojic Kapetanovic',
-      author_email='alojic00@fesb.hr',
+      author='Ante Kapetanovic',
+      author_email='akapet00@gmail.hr',
       license='MIT',
       classifiers=[
             'Intended Audience :: Science/Research',
