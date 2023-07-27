@@ -300,6 +300,8 @@ def elementwise_circquad(points, values, radius, center, degree=9,
     2-D data over a disk by using the appropriate quadrature scheme for
     a given degree of integration.
 
+    Note: DEPRECATED
+
     Parameters
     ----------
     points : numpy.ndarray
